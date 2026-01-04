@@ -2,6 +2,11 @@ import { useEffect, useState } from "react";
 
 const API = "https://garage-crm-backend.onrender.com";
 
+  // Service form state
+const [description, setDescription] = useState("");
+const [cost, setCost] = useState("");
+const [serviceDate, setServiceDate] = useState("");
+
 function App(const addService = async (e) => {
   e.preventDefault();
 
@@ -36,10 +41,6 @@ function App(const addService = async (e) => {
   const [plate, setPlate] = useState("");
   const [year, setYear] = useState("");
 
-  // Service form state
-const [description, setDescription] = useState("");
-const [cost, setCost] = useState("");
-const [serviceDate, setServiceDate] = useState("");
 
 
   const fetchCustomers = async () => {
@@ -109,7 +110,7 @@ const [serviceDate, setServiceDate] = useState("");
         ))}
       </ul>
 
-      {/* VEHICLES */}
+      {/* VEHICLES form */}
       {selectedCustomer && (
         <>
           <h2>Vehicles of {selectedCustomer.name}</h2>
@@ -139,7 +140,7 @@ const [serviceDate, setServiceDate] = useState("");
         </>
       )}
 
-      {/* SERVICES (next step) */}
+      {/* SERVICES form (next step) */}
 
       {selectedVehicle && (
   <>
