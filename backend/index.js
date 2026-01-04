@@ -4,6 +4,10 @@
 require("dotenv").config();
 const supabase = require("./supabaseClient");
 
+/*Import invoices routes from folder backend */
+
+import invoiceRoutes from "./routes/invoices.js";
+app.use("/invoices", invoiceRoutes);
 
 
 /*index.js*/ 
