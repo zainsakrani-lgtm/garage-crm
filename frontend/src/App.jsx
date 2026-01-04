@@ -2,32 +2,8 @@ import { useEffect, useState } from "react";
 
 const API = "https://garage-crm-backend.onrender.com";
 
-  // Service form state
-const [description, setDescription] = useState("");
-const [cost, setCost] = useState("");
-const [serviceDate, setServiceDate] = useState("");
-
-function App(const addService = async (e) => {
-  e.preventDefault();
-
-  await fetch(`${API}/services`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      vehicle_id: selectedVehicle.id,
-      description,
-      cost,
-      service_date: serviceDate
-    })
-  });
-
-  setDescription("");
-  setCost("");
-  setServiceDate("");
-  fetchServices(selectedVehicle.id);
-};
-) 
-{
+function App() {
+  // DATA STATE
   const [customers, setCustomers] = useState([]);
   const [vehicles, setVehicles] = useState([]);
   const [services, setServices] = useState([]);
@@ -35,14 +11,18 @@ function App(const addService = async (e) => {
   const [selectedCustomer, setSelectedCustomer] = useState(null);
   const [selectedVehicle, setSelectedVehicle] = useState(null);
 
-  // Vehicle form state
+  // VEHICLE FORM STATE
   const [brand, setBrand] = useState("");
   const [model, setModel] = useState("");
   const [plate, setPlate] = useState("");
   const [year, setYear] = useState("");
 
+  // SERVICE FORM STATE
+  const [description, setDescription] = useState("");
+  const [cost, setCost] = useState("");
+  const [serviceDate, setServiceDate] = useState("");
 
-
+  // FETCH FUNCTIONS
   const fetchCustomers = async () => {
     const res = await fetch(`${API}/customers`);
     const data = await res.json();
@@ -62,6 +42,7 @@ function App(const addService = async (e) => {
     setServices(data);
   };
 
+  // ADD VEHICLE
   const addVehicle = async (e) => {
     e.preventDefault();
 
@@ -84,6 +65,27 @@ function App(const addService = async (e) => {
     fetchVehicles(selectedCustomer.id);
   };
 
+  // ADD SERVICE
+  const addService = async (e) => {
+    e.preventDefault();
+
+    await fetch(`${API}/services`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        vehicle_id: selectedVehicle.id,
+        description,
+        cost,
+        service_date: serviceDate
+      })
+    });
+
+    setDescription("");
+    setCost("");
+    setServiceDate("");
+    fetchServices(selectedVehicle.id);
+  };
+
   useEffect(() => {
     fetchCustomers();
   }, []);
@@ -92,13 +94,15 @@ function App(const addService = async (e) => {
     <div style={{ padding: 20 }}>
       <h1>Garage CRM</h1>
 
-      {/* CUSTOMERS */}
       <h2>Customers</h2>
       <ul>
         {customers.map((c) => (
           <li
             key={c.id}
-            style={{ cursor: "pointer", fontWeight: selectedCustomer?.id === c.id ? "bold" : "normal" }}
+            style={{
+              cursor: "pointer",
+              fontWeight: selectedCustomer?.id === c.id ? "bold" : "normal"
+            }}
             onClick={() => {
               setSelectedCustomer(c);
               setSelectedVehicle(null);
@@ -110,16 +114,15 @@ function App(const addService = async (e) => {
         ))}
       </ul>
 
-      {/* VEHICLES form */}
       {selectedCustomer && (
         <>
           <h2>Vehicles of {selectedCustomer.name}</h2>
 
           <form onSubmit={addVehicle}>
-            <input placeholder="Brand" value={brand} onChange={e => setBrand(e.target.value)} required />
-            <input placeholder="Model" value={model} onChange={e => setModel(e.target.value)} required />
-            <input placeholder="Plate" value={plate} onChange={e => setPlate(e.target.value)} />
-            <input placeholder="Year" value={year} onChange={e => setYear(e.target.value)} />
+            <input placeholder="Brand" value={brand} onChange={(e) => setBrand(e.target.value)} required />
+            <input placeholder="Model" value={model} onChange={(e) => setModel(e.target.value)} required />
+            <input placeholder="Plate" value={plate} onChange={(e) => setPlate(e.target.value)} />
+            <input placeholder="Year" value={year} onChange={(e) => setYear(e.target.value)} />
             <button type="submit">Add Vehicle</button>
           </form>
 
@@ -127,7 +130,10 @@ function App(const addService = async (e) => {
             {vehicles.map((v) => (
               <li
                 key={v.id}
-                style={{ cursor: "pointer", fontWeight: selectedVehicle?.id === v.id ? "bold" : "normal" }}
+                style={{
+                  cursor: "pointer",
+                  fontWeight: selectedVehicle?.id === v.id ? "bold" : "normal"
+                }}
                 onClick={() => {
                   setSelectedVehicle(v);
                   fetchServices(v.id);
@@ -140,43 +146,40 @@ function App(const addService = async (e) => {
         </>
       )}
 
-      {/* SERVICES form (next step) */}
-
       {selectedVehicle && (
-  <>
-    <h2>Service History</h2>
+        <>
+          <h2>Service History</h2>
 
-    <form onSubmit={addService}>
-      <input
-        placeholder="Description"
-        value={description}
-        onChange={(e) => setDescription(e.target.value)}
-        required
-      />
-      <input
-        placeholder="Cost"
-        type="number"
-        value={cost}
-        onChange={(e) => setCost(e.target.value)}
-      />
-      <input
-        type="date"
-        value={serviceDate}
-        onChange={(e) => setServiceDate(e.target.value)}
-      />
-      <button type="submit">Add Service</button>
-    </form>
+          <form onSubmit={addService}>
+            <input
+              placeholder="Description"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              required
+            />
+            <input
+              type="number"
+              placeholder="Cost"
+              value={cost}
+              onChange={(e) => setCost(e.target.value)}
+            />
+            <input
+              type="date"
+              value={serviceDate}
+              onChange={(e) => setServiceDate(e.target.value)}
+            />
+            <button type="submit">Add Service</button>
+          </form>
 
-    <ul>
-      {services.map((s) => (
-        <li key={s.id}>
-          {s.service_date} – {s.description} – ${s.cost}
-        </li>
-      ))}
-    </ul>
-  </>
-)}
-
+          <ul>
+            {services.map((s) => (
+              <li key={s.id}>
+                {s.service_date} – {s.description} – ${s.cost}
+              </li>
+            ))}
+          </ul>
+        </>
+      )}
     </div>
   );
 }
