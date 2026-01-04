@@ -90,50 +90,64 @@ function App() {
     fetchCustomers();
   }, []);
 
-  return (
-    <div style={{ padding: 20 }}>
-      <h1>Garage CRM</h1>
+return (
+  <div className="min-h-screen bg-gray-100 p-6">
+    <div className="max-w-5xl mx-auto bg-white rounded-xl shadow p-6">
+      <h1 className="text-3xl font-bold mb-6 text-center">🚗 Garage CRM</h1>
 
-      <h2>Customers</h2>
-      <ul>
-        {customers.map((c) => (
-          <li
-            key={c.id}
-            style={{
-              cursor: "pointer",
-              fontWeight: selectedCustomer?.id === c.id ? "bold" : "normal"
-            }}
-            onClick={() => {
-              setSelectedCustomer(c);
-              setSelectedVehicle(null);
-              fetchVehicles(c.id);
-            }}
-          >
-            {c.name}
-          </li>
-        ))}
-      </ul>
+      {/* CUSTOMERS */}
+      <div className="mb-6">
+        <h2 className="text-xl font-semibold mb-2">Customers</h2>
+        <ul className="space-y-1">
+          {customers.map((c) => (
+            <li
+              key={c.id}
+              className={`p-2 rounded cursor-pointer ${
+                selectedCustomer?.id === c.id
+                  ? "bg-blue-500 text-white"
+                  : "bg-gray-100 hover:bg-gray-200"
+              }`}
+              onClick={() => {
+                setSelectedCustomer(c);
+                setSelectedVehicle(null);
+                fetchVehicles(c.id);
+              }}
+            >
+              {c.name}
+            </li>
+          ))}
+        </ul>
+      </div>
 
+      {/* VEHICLES */}
       {selectedCustomer && (
-        <>
-          <h2>Vehicles of {selectedCustomer.name}</h2>
+        <div className="mb-6">
+          <h2 className="text-xl font-semibold mb-2">
+            Vehicles of {selectedCustomer.name}
+          </h2>
 
-          <form onSubmit={addVehicle}>
-            <input placeholder="Brand" value={brand} onChange={(e) => setBrand(e.target.value)} required />
-            <input placeholder="Model" value={model} onChange={(e) => setModel(e.target.value)} required />
-            <input placeholder="Plate" value={plate} onChange={(e) => setPlate(e.target.value)} />
-            <input placeholder="Year" value={year} onChange={(e) => setYear(e.target.value)} />
-            <button type="submit">Add Vehicle</button>
+          <form
+            onSubmit={addVehicle}
+            className="grid grid-cols-2 gap-2 mb-4"
+          >
+            <input className="border p-2 rounded" placeholder="Brand" value={brand} onChange={(e) => setBrand(e.target.value)} required />
+            <input className="border p-2 rounded" placeholder="Model" value={model} onChange={(e) => setModel(e.target.value)} required />
+            <input className="border p-2 rounded" placeholder="Plate" value={plate} onChange={(e) => setPlate(e.target.value)} />
+            <input className="border p-2 rounded" placeholder="Year" value={year} onChange={(e) => setYear(e.target.value)} />
+            <button className="col-span-2 bg-blue-600 text-white p-2 rounded hover:bg-blue-700">
+              Add Vehicle
+            </button>
           </form>
 
-          <ul>
+          <ul className="space-y-1">
             {vehicles.map((v) => (
               <li
                 key={v.id}
-                style={{
-                  cursor: "pointer",
-                  fontWeight: selectedVehicle?.id === v.id ? "bold" : "normal"
-                }}
+                className={`p-2 rounded cursor-pointer ${
+                  selectedVehicle?.id === v.id
+                    ? "bg-green-500 text-white"
+                    : "bg-gray-100 hover:bg-gray-200"
+                }`}
                 onClick={() => {
                   setSelectedVehicle(v);
                   fetchServices(v.id);
@@ -143,45 +157,39 @@ function App() {
               </li>
             ))}
           </ul>
-        </>
+        </div>
       )}
 
+      {/* SERVICES */}
       {selectedVehicle && (
-        <>
-          <h2>Service History</h2>
+        <div>
+          <h2 className="text-xl font-semibold mb-2">Service History</h2>
 
-          <form onSubmit={addService}>
-            <input
-              placeholder="Description"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              required
-            />
-            <input
-              type="number"
-              placeholder="Cost"
-              value={cost}
-              onChange={(e) => setCost(e.target.value)}
-            />
-            <input
-              type="date"
-              value={serviceDate}
-              onChange={(e) => setServiceDate(e.target.value)}
-            />
-            <button type="submit">Add Service</button>
+          <form
+            onSubmit={addService}
+            className="grid grid-cols-3 gap-2 mb-4"
+          >
+            <input className="border p-2 rounded col-span-3" placeholder="Description" value={description} onChange={(e) => setDescription(e.target.value)} required />
+            <input className="border p-2 rounded" type="number" placeholder="Cost" value={cost} onChange={(e) => setCost(e.target.value)} />
+            <input className="border p-2 rounded" type="date" value={serviceDate} onChange={(e) => setServiceDate(e.target.value)} />
+            <button className="bg-green-600 text-white p-2 rounded hover:bg-green-700 col-span-3">
+              Add Service
+            </button>
           </form>
 
-          <ul>
+          <ul className="space-y-1">
             {services.map((s) => (
-              <li key={s.id}>
-                {s.service_date} – {s.description} – ${s.cost}
+              <li key={s.id} className="p-2 bg-gray-100 rounded">
+                📅 {s.service_date} — {s.description} — 💲{s.cost}
               </li>
             ))}
           </ul>
-        </>
+        </div>
       )}
     </div>
-  );
+  </div>
+);
+
 }
 
 export default App;
