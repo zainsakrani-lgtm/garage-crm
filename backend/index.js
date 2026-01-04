@@ -105,6 +105,54 @@ app.post("/vehicles", async (req, res) => {
   res.status(201).json(data[0]);
 });
 
+// --------------------
+// SERVICE HISTORY
+// --------------------
+
+// Get services for a vehicle
+app.get("/services/:vehicleId", async (req, res) => {
+  const { vehicleId } = req.params;
+
+  const { data, error } = await supabase
+    .from("services")
+    .select("*")
+    .eq("vehicle_id", vehicleId)
+    .order("service_date", { ascending: false });
+
+  if (error) {
+    return res.status(500).json({ error: error.message });
+  }
+
+  res.json(data);
+});
+
+// Add service record
+app.post("/services", async (req, res) => {
+  const { vehicle_id, description, cost, service_date } = req.body;
+
+  if (!vehicle_id || !description) {
+    return res.status(400).json({ error: "vehicle_id and description are required" });
+  }
+
+  const { data, error } = await supabase
+    .from("services")
+    .insert([
+      {
+        vehicle_id,
+        description,
+        cost,
+        service_date
+      }
+    ])
+    .select();
+
+  if (error) {
+    return res.status(500).json({ error: error.message });
+  }
+
+  res.status(201).json(data[0]);
+});
+
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
 });
