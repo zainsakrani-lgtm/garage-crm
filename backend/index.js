@@ -64,6 +64,47 @@ app.post("/customers", async (req, res) => {
 
 /*Initial Route*/
 const PORT = process.env.PORT || 5000;
+
+// --------------------
+// VEHICLES
+// --------------------
+
+// Get vehicles for a customer
+app.get("/vehicles/:customerId", async (req, res) => {
+  const { customerId } = req.params;
+
+  const { data, error } = await supabase
+    .from("vehicles")
+    .select("*")
+    .eq("customer_id", customerId);
+
+  if (error) {
+    return res.status(500).json({ error: error.message });
+  }
+
+  res.json(data);
+});
+
+// Add vehicle
+app.post("/vehicles", async (req, res) => {
+  const { customer_id, brand, model, plate_number, year } = req.body;
+
+  if (!customer_id) {
+    return res.status(400).json({ error: "customer_id is required" });
+  }
+
+  const { data, error } = await supabase
+    .from("vehicles")
+    .insert([{ customer_id, brand, model, plate_number, year }])
+    .select();
+
+  if (error) {
+    return res.status(500).json({ error: error.message });
+  }
+
+  res.status(201).json(data[0]);
+});
+
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
 });
