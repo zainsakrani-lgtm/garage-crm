@@ -1,85 +1,95 @@
-/* Clean the React FE App*/
-
 import { useEffect, useState } from "react";
+
+const API = "https://garage-crm-backend.onrender.com";
 
 function App() {
   const [customers, setCustomers] = useState([]);
-  const [name, setName] = useState("");
-  const [phone, setPhone] = useState("");
-  const [email, setEmail] = useState("");
+  const [vehicles, setVehicles] = useState([]);
+  const [services, setServices] = useState([]);
 
-  const fetchCustomers = () => {
-    /*Replace it with Render URL later */
-    fetch("http://localhost:5000/customers")
-      .then((res) => res.json())
-      .then((data) => setCustomers(data))
-      .catch((err) => console.error(err));
+  const [selectedCustomer, setSelectedCustomer] = useState(null);
+  const [selectedVehicle, setSelectedVehicle] = useState(null);
+
+  const fetchCustomers = async () => {
+    const res = await fetch(`${API}/customers`);
+    const data = await res.json();
+    setCustomers(data);
+  };
+
+  const fetchVehicles = async (customerId) => {
+    const res = await fetch(`${API}/vehicles/${customerId}`);
+    const data = await res.json();
+    setVehicles(data);
+    setServices([]);
+  };
+
+  const fetchServices = async (vehicleId) => {
+    const res = await fetch(`${API}/services/${vehicleId}`);
+    const data = await res.json();
+    setServices(data);
   };
 
   useEffect(() => {
     fetchCustomers();
   }, []);
 
-  const addCustomer = (e) => {
-    e.preventDefault();
-    /*Replace it with Render url later */
-
-    fetch("http://localhost:5000/customers", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ name, phone, email }),
-    })
-      .then((res) => res.json())
-      .then(() => {
-        setName("");
-        setPhone("");
-        setEmail("");
-        fetchCustomers();
-      })
-      .catch((err) => console.error(err));
-  };
-
   return (
-    <div style={{ padding: "20px", maxWidth: "500px" }}>
+    <div style={{ padding: 20 }}>
       <h1>Garage CRM</h1>
 
-      <h2>Add Customer</h2>
-      <form onSubmit={addCustomer}>
-        <input
-          placeholder="Name"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          required
-        />
-        <br /><br />
-        <input
-          placeholder="Phone"
-          value={phone}
-          onChange={(e) => setPhone(e.target.value)}
-        />
-        <br /><br />
-        <input
-          placeholder="Email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-        />
-        <br /><br />
-        <button type="submit">Add Customer</button>
-      </form>
-
+      {/* CUSTOMERS */}
       <h2>Customers</h2>
       <ul>
         {customers.map((c) => (
-          <li key={c.id}>
-            {c.name} – {c.phone}
+          <li
+            key={c.id}
+            style={{ cursor: "pointer", fontWeight: selectedCustomer?.id === c.id ? "bold" : "normal" }}
+            onClick={() => {
+              setSelectedCustomer(c);
+              fetchVehicles(c.id);
+            }}
+          >
+            {c.name}
           </li>
         ))}
       </ul>
+
+      {/* VEHICLES */}
+      {selectedCustomer && (
+        <>
+          <h2>Vehicles of {selectedCustomer.name}</h2>
+          <ul>
+            {vehicles.map((v) => (
+              <li
+                key={v.id}
+                style={{ cursor: "pointer", fontWeight: selectedVehicle?.id === v.id ? "bold" : "normal" }}
+                onClick={() => {
+                  setSelectedVehicle(v);
+                  fetchServices(v.id);
+                }}
+              >
+                {v.brand} {v.model} ({v.plate_number})
+              </li>
+            ))}
+          </ul>
+        </>
+      )}
+
+      {/* SERVICES */}
+      {selectedVehicle && (
+        <>
+          <h2>Service History</h2>
+          <ul>
+            {services.map((s) => (
+              <li key={s.id}>
+                {s.service_date} – {s.description} – ${s.cost}
+              </li>
+            ))}
+          </ul>
+        </>
+      )}
     </div>
   );
 }
 
 export default App;
-
