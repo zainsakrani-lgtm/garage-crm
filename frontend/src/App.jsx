@@ -2,7 +2,27 @@ import { useEffect, useState } from "react";
 
 const API = "https://garage-crm-backend.onrender.com";
 
-function App() {
+function App(const addService = async (e) => {
+  e.preventDefault();
+
+  await fetch(`${API}/services`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      vehicle_id: selectedVehicle.id,
+      description,
+      cost,
+      service_date: serviceDate
+    })
+  });
+
+  setDescription("");
+  setCost("");
+  setServiceDate("");
+  fetchServices(selectedVehicle.id);
+};
+) 
+{
   const [customers, setCustomers] = useState([]);
   const [vehicles, setVehicles] = useState([]);
   const [services, setServices] = useState([]);
@@ -15,6 +35,12 @@ function App() {
   const [model, setModel] = useState("");
   const [plate, setPlate] = useState("");
   const [year, setYear] = useState("");
+
+  // Service form state
+const [description, setDescription] = useState("");
+const [cost, setCost] = useState("");
+const [serviceDate, setServiceDate] = useState("");
+
 
   const fetchCustomers = async () => {
     const res = await fetch(`${API}/customers`);
@@ -114,18 +140,42 @@ function App() {
       )}
 
       {/* SERVICES (next step) */}
+
       {selectedVehicle && (
-        <>
-          <h2>Service History</h2>
-          <ul>
-            {services.map((s) => (
-              <li key={s.id}>
-                {s.service_date} – {s.description} – ${s.cost}
-              </li>
-            ))}
-          </ul>
-        </>
-      )}
+  <>
+    <h2>Service History</h2>
+
+    <form onSubmit={addService}>
+      <input
+        placeholder="Description"
+        value={description}
+        onChange={(e) => setDescription(e.target.value)}
+        required
+      />
+      <input
+        placeholder="Cost"
+        type="number"
+        value={cost}
+        onChange={(e) => setCost(e.target.value)}
+      />
+      <input
+        type="date"
+        value={serviceDate}
+        onChange={(e) => setServiceDate(e.target.value)}
+      />
+      <button type="submit">Add Service</button>
+    </form>
+
+    <ul>
+      {services.map((s) => (
+        <li key={s.id}>
+          {s.service_date} – {s.description} – ${s.cost}
+        </li>
+      ))}
+    </ul>
+  </>
+)}
+
     </div>
   );
 }
