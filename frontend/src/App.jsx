@@ -263,22 +263,39 @@ return (
       </form>
 
       <ul className="space-y-1">
-        {invoices.map((inv) => (
-          <li
-            key={inv.id}
-            className={`p-2 rounded flex justify-between items-center ${
-              inv.paid ? "bg-green-100" : "bg-red-100"
-            }`}
-          >
-            <span>
-              🧾 Invoice #{inv.id} — 💲{inv.total}
-            </span>
-            <span className="font-semibold">
-              {inv.paid ? "PAID ✅" : "UNPAID ❌"}
-            </span>
-          </li>
-        ))}
-      </ul>
+  {invoices.map((inv) => (
+    <li
+      key={inv.id}
+      className={`p-2 rounded flex justify-between items-center ${
+        inv.status === "paid" ? "bg-green-100" : "bg-red-100"
+      }`}
+    >
+      <span>
+        🧾 Invoice — 💲{inv.total}
+      </span>
+
+      {inv.status === "paid" ? (
+        <span className="font-semibold text-green-700">
+          PAID ✅
+        </span>
+      ) : (
+        <button
+          onClick={async () => {
+            await fetch(`${API}/invoices/${inv.id}/pay`, {
+              method: "PUT",
+            });
+
+            fetchInvoices(selectedVehicle.id);
+          }}
+          className="bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700"
+        >
+          Mark as Paid
+        </button>
+      )}
+    </li>
+  ))}
+</ul>
+
     </div>
 
   </div>

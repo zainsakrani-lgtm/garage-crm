@@ -71,11 +71,14 @@ router.put("/:id/pay", async (req, res) => {
 
   const { data, error } = await supabase
     .from("invoices")
-    .update({ paid: paid })
+    .update({ status: "paid" })
     .eq("id", id)
     .select();
 
-  if (error) return res.status(500).json({ error: error.message });
+  if (error) {
+    console.error("❌ Supabase error:", error);
+    return res.status(500).json({ error: error.message });
+  }
 
   res.json(data[0]);
 });
