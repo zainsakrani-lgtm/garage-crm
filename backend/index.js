@@ -1,35 +1,29 @@
+import express from "express";
+import cors from "cors";
+import dotenv from "dotenv";
 
-
-/*To Use Supabase*/ 
-require("dotenv").config();
-const supabase = require("./supabaseClient");
-
-/*Import invoices routes from folder backend */
-
+import { supabase } from "./supabaseClient.js";
 import invoiceRoutes from "./routes/invoices.js";
-app.use("/invoices", invoiceRoutes);
 
-
-/*index.js*/ 
-
-
-const express = require("express");
-const cors = require("cors");
+dotenv.config();
 
 const app = express();
 
-
 app.use(cors());
-
-/*app.use(cors({ origin: "http://localhost:5173" }));*/
 app.use(express.json());
 
+/* --------------------
+   BASIC TEST ROUTE
+-------------------- */
 app.get("/", (req, res) => {
   res.send("Garage CRM Backend is running 🚗");
 });
 
-/*Test route for customer*/
+/* --------------------
+   CUSTOMERS
+-------------------- */
 
+// Get all customers
 app.get("/customers", async (req, res) => {
   const { data, error } = await supabase
     .from("customers")
@@ -42,10 +36,7 @@ app.get("/customers", async (req, res) => {
   res.json(data);
 });
 
-/*Add “Create Customer” API (POST)*/
-
-/*Send customer data → backend → database > Save it > Return saved customer*/
-
+// Add customer
 app.post("/customers", async (req, res) => {
   const { name, phone, email } = req.body;
 
@@ -65,13 +56,9 @@ app.post("/customers", async (req, res) => {
   res.status(201).json(data[0]);
 });
 
-
-/*Initial Route*/
-const PORT = process.env.PORT || 5000;
-
-// --------------------
-// VEHICLES
-// --------------------
+/* --------------------
+   VEHICLES
+-------------------- */
 
 // Get vehicles for a customer
 app.get("/vehicles/:customerId", async (req, res) => {
@@ -109,9 +96,9 @@ app.post("/vehicles", async (req, res) => {
   res.status(201).json(data[0]);
 });
 
-// --------------------
-// SERVICE HISTORY
-// --------------------
+/* --------------------
+   SERVICES
+-------------------- */
 
 // Get services for a vehicle
 app.get("/services/:vehicleId", async (req, res) => {
@@ -130,24 +117,19 @@ app.get("/services/:vehicleId", async (req, res) => {
   res.json(data);
 });
 
-// Add service record
+// Add service
 app.post("/services", async (req, res) => {
   const { vehicle_id, description, cost, service_date } = req.body;
 
   if (!vehicle_id || !description) {
-    return res.status(400).json({ error: "vehicle_id and description are required" });
+    return res
+      .status(400)
+      .json({ error: "vehicle_id and description are required" });
   }
 
   const { data, error } = await supabase
     .from("services")
-    .insert([
-      {
-        vehicle_id,
-        description,
-        cost,
-        service_date
-      }
-    ])
+    .insert([{ vehicle_id, description, cost, service_date }])
     .select();
 
   if (error) {
@@ -156,6 +138,16 @@ app.post("/services", async (req, res) => {
 
   res.status(201).json(data[0]);
 });
+
+/* --------------------
+   INVOICES ROUTES
+-------------------- */
+app.use("/invoices", invoiceRoutes);
+
+/* --------------------
+   START SERVER
+-------------------- */
+const PORT = process.env.PORT || 10000;
 
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
