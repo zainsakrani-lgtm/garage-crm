@@ -13,16 +13,15 @@ router.get("/:vehicleId", async (req, res) => {
   const { data, error } = await supabase
     .from("invoices")
     .select("*")
-    .eq("vehicle_id", vehicleId)
-    .order("created_at", { ascending: false });
+    .eq("vehicle_id", vehicleId);
 
   if (error) {
     return res.status(500).json({ error: error.message });
   }
 
-  // ✅ ALWAYS return an array
   res.json(data || []);
 });
+
 
 
 /* ======================

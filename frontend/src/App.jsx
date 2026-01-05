@@ -297,7 +297,7 @@ return (
       }`}
     >
       <span>
-        🧾 Invoice — 💲{inv.total}
+        🧾 Invoice — 💲{inv.total_amount ?? 0}
       </span>
 
       {inv.status === "paid" ? (
@@ -306,6 +306,7 @@ return (
         </span>
       ) : (
         <button
+          type="button"
           onClick={async () => {
             await fetch(`${API}/invoices/${inv.id}/pay`, {
               method: "PUT",
@@ -321,6 +322,7 @@ return (
     </li>
   ))}
 </ul>
+
 
     </div>
 
