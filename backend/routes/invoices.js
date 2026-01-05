@@ -6,6 +6,7 @@ const router = express.Router();
 /* ======================
    GET invoices for vehicle
 ====================== */
+// GET invoices for a vehicle
 router.get("/:vehicleId", async (req, res) => {
   const { vehicleId } = req.params;
 
@@ -15,10 +16,14 @@ router.get("/:vehicleId", async (req, res) => {
     .eq("vehicle_id", vehicleId)
     .order("created_at", { ascending: false });
 
-  if (error) return res.status(500).json({ error: error.message });
+  if (error) {
+    return res.status(500).json({ error: error.message });
+  }
 
-  res.json(data);
+  // ✅ ALWAYS return an array
+  res.json(data || []);
 });
+
 
 /* ======================
    CREATE invoice

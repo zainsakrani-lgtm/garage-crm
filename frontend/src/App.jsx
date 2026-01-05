@@ -50,10 +50,30 @@ function App() {
   };
 
   // FETCH INVOICES FROM BACKEND
+  /* MODIFIED ON 050126
   const fetchInvoices = async (vehicleId) => {
   const res = await fetch(`${API}/invoices/${vehicleId}`);
   const data = await res.json();
-  setInvoices(data);};
+  setInvoices(data);}; */
+
+  const fetchInvoices = async (vehicleId) => {
+  try {
+    const res = await fetch(`${API}/invoices/${vehicleId}`);
+
+    if (!res.ok) {
+      setInvoices([]); // ✅ fallback
+      return;
+    }
+
+    const data = await res.json();
+
+    // ✅ Ensure array
+    setInvoices(Array.isArray(data) ? data : []);
+  } catch (err) {
+    console.error("Invoice fetch failed", err);
+    setInvoices([]);
+  }
+};
 
 
   // ADD VEHICLE
@@ -269,7 +289,7 @@ return (
       </form>
 
       <ul className="space-y-1">
-  {invoices.map((inv) => (
+  {Array.isArray(invoices) && invoices.map((inv) => (
     <li
       key={inv.id}
       className={`p-2 rounded flex justify-between items-center ${
