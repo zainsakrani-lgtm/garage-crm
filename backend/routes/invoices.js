@@ -41,6 +41,29 @@ router.post("/", async (req, res) => {
 });
 
 /* ======================
+   MARK new invoice as UNPAID
+====================== */
+router.post("/", async (req, res) => {
+  const { vehicle_id, total } = req.body;
+
+  const { data, error } = await supabase
+    .from("invoices")
+    .insert([
+      {
+        vehicle_id,
+        total,
+        status: "unpaid"
+      }
+    ])
+    .select();
+
+  if (error) return res.status(500).json({ error: error.message });
+
+  res.status(201).json(data[0]);
+});
+
+
+/* ======================
    MARK invoice as PAID
 ====================== */
 router.put("/:id/pay", async (req, res) => {
@@ -48,7 +71,7 @@ router.put("/:id/pay", async (req, res) => {
 
   const { data, error } = await supabase
     .from("invoices")
-    .update({ paid: true })
+    .update({ paid: paid })
     .eq("id", id)
     .select();
 
