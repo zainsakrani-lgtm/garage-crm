@@ -3,7 +3,9 @@ import { supabase } from "../supabaseClient.js";
 
 const router = express.Router();
 
-// Get invoices by vehicle
+/* ======================
+   GET invoices for vehicle
+====================== */
 router.get("/:vehicleId", async (req, res) => {
   const { vehicleId } = req.params;
 
@@ -11,36 +13,47 @@ router.get("/:vehicleId", async (req, res) => {
     .from("invoices")
     .select("*")
     .eq("vehicle_id", vehicleId)
-    .order("invoice_date", { ascending: false });
+    .order("created_at", { ascending: false });
 
-  if (error) return res.status(400).json(error);
+  if (error) return res.status(500).json({ error: error.message });
+
   res.json(data);
 });
 
-// Create invoice
+/* ======================
+   CREATE invoice
+====================== */
 router.post("/", async (req, res) => {
-  const { vehicle_id, total_amount } = req.body;
+  const { vehicle_id, total } = req.body;
+
+  if (!vehicle_id || !total) {
+    return res.status(400).json({ error: "vehicle_id and total are required" });
+  }
 
   const { data, error } = await supabase
     .from("invoices")
-    .insert([{ vehicle_id, total_amount }])
+    .insert([{ vehicle_id, total, paid: false }])
     .select();
 
-  if (error) return res.status(400).json(error);
-  res.json(data[0]);
+  if (error) return res.status(500).json({ error: error.message });
+
+  res.status(201).json(data[0]);
 });
 
-// Mark invoice paid
+/* ======================
+   MARK invoice as PAID
+====================== */
 router.put("/:id/pay", async (req, res) => {
   const { id } = req.params;
 
   const { data, error } = await supabase
     .from("invoices")
-    .update({ status: "paid" })
+    .update({ paid: true })
     .eq("id", id)
     .select();
 
-  if (error) return res.status(400).json(error);
+  if (error) return res.status(500).json({ error: error.message });
+
   res.json(data[0]);
 });
 
