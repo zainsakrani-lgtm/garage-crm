@@ -3,6 +3,13 @@ import { useEffect, useState } from "react";
 const API = "https://garage-crm-backend.onrender.com";
 
 function App() {
+
+  // STATE for INVOICES
+  /* invoices → list of invoices from backend
+  invoiceTotal → input value from form*/
+  const [invoices, setInvoices] = useState([]);
+  const [invoiceTotal, setInvoiceTotal] = useState("");
+
   // DATA STATE
   const [customers, setCustomers] = useState([]);
   const [vehicles, setVehicles] = useState([]);
@@ -41,6 +48,13 @@ function App() {
     const data = await res.json();
     setServices(data);
   };
+
+  // FETCH INVOICES FROM BACKEND
+  const fetchInvoices = async (vehicleId) => {
+  const res = await fetch(`${API}/invoices/${vehicleId}`);
+  const data = await res.json();
+  setInvoices(data);};
+
 
   // ADD VEHICLE
   const addVehicle = async (e) => {
@@ -148,10 +162,13 @@ return (
                     ? "bg-green-500 text-white"
                     : "bg-gray-100 hover:bg-gray-200"
                 }`}
+                // when click on vehicle > Services load and Invoices load
                 onClick={() => {
-                  setSelectedVehicle(v);
-                  fetchServices(v.id);
-                }}
+  setSelectedVehicle(v);
+  fetchServices(v.id);
+  fetchInvoices(v.id);
+}}
+
               >
                 {v.brand} {v.model} ({v.plate_number})
               </li>
@@ -162,30 +179,107 @@ return (
 
       {/* SERVICES */}
       {selectedVehicle && (
-        <div>
-          <h2 className="text-xl font-semibold mb-2">Service History</h2>
+  <div className="space-y-6">
+    {/* ======================
+        SERVICE HISTORY
+    ====================== */}
+    <div>
+      <h2 className="text-xl font-semibold mb-2">Service History</h2>
 
-          <form
-            onSubmit={addService}
-            className="grid grid-cols-3 gap-2 mb-4"
-          >
-            <input className="border p-2 rounded col-span-3" placeholder="Description" value={description} onChange={(e) => setDescription(e.target.value)} required />
-            <input className="border p-2 rounded" type="number" placeholder="Cost" value={cost} onChange={(e) => setCost(e.target.value)} />
-            <input className="border p-2 rounded" type="date" value={serviceDate} onChange={(e) => setServiceDate(e.target.value)} />
-            <button className="bg-green-600 text-white p-2 rounded hover:bg-green-700 col-span-3">
-              Add Service
-            </button>
-          </form>
+      <form
+        onSubmit={addService}
+        className="grid grid-cols-3 gap-2 mb-4"
+      >
+        <input
+          className="border p-2 rounded col-span-3"
+          placeholder="Description"
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+          required
+        />
+        <input
+          className="border p-2 rounded"
+          type="number"
+          placeholder="Cost"
+          value={cost}
+          onChange={(e) => setCost(e.target.value)}
+        />
+        <input
+          className="border p-2 rounded"
+          type="date"
+          value={serviceDate}
+          onChange={(e) => setServiceDate(e.target.value)}
+        />
+        <button className="bg-green-600 text-white p-2 rounded hover:bg-green-700 col-span-3">
+          Add Service
+        </button>
+      </form>
 
-          <ul className="space-y-1">
-            {services.map((s) => (
-              <li key={s.id} className="p-2 bg-gray-100 rounded">
-                📅 {s.service_date} — {s.description} — 💲{s.cost}
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
+      <ul className="space-y-1">
+        {services.map((s) => (
+          <li key={s.id} className="p-2 bg-gray-100 rounded">
+            📅 {s.service_date} — {s.description} — 💲{s.cost}
+          </li>
+        ))}
+      </ul>
+    </div>
+
+{/* ======================
+    INVOICES
+====================== */}
+<div>
+  <h2 className="text-xl font-semibold mb-2">Invoices</h2>
+
+  <form
+    onSubmit={async (e) => {
+      e.preventDefault();
+
+      await fetch(`${API}/invoices`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          vehicle_id: selectedVehicle.id,
+          total: invoiceTotal,
+        }),
+      });
+
+      setInvoiceTotal("");
+      fetchInvoices(selectedVehicle.id);
+    }}
+    className="flex gap-2 mb-4"
+  >
+    <input
+      className="border p-2 rounded flex-1"
+      type="number"
+      placeholder="Invoice total"
+      value={invoiceTotal}
+      onChange={(e) => setInvoiceTotal(e.target.value)}
+      required
+    />
+    <button className="bg-blue-600 text-white px-4 rounded hover:bg-blue-700">
+      Add Invoice
+    </button>
+  </form>
+
+  <ul className="space-y-1">
+    {invoices.map((inv) => (
+      <li
+        key={inv.id}
+        className={`p-2 rounded flex justify-between items-center ${
+          inv.paid ? "bg-green-100" : "bg-red-100"
+        }`}
+      >
+        <span>
+          🧾 Invoice #{inv.id} — 💲{inv.total}
+        </span>
+        <span className="font-semibold">
+          {inv.paid ? "PAID ✅" : "UNPAID ❌"}
+        </span>
+      </li>
+    ))}
+  </ul>
+</div>
+
     </div>
   </div>
 );
@@ -193,3 +287,4 @@ return (
 }
 
 export default App;
+
