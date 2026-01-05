@@ -153,27 +153,33 @@ return (
             </button>
           </form>
 
-          <ul className="space-y-1">
-            {vehicles.map((v) => (
-              <li
-                key={v.id}
-                className={`p-2 rounded cursor-pointer ${
-                  selectedVehicle?.id === v.id
-                    ? "bg-green-500 text-white"
-                    : "bg-gray-100 hover:bg-gray-200"
-                }`}
-                // when click on vehicle > Services load and Invoices load
-                onClick={() => {
-  setSelectedVehicle(v);
-  fetchServices(v.id);
-  fetchInvoices(v.id);
-}}
 
-              >
-                {v.brand} {v.model} ({v.plate_number})
-              </li>
-            ))}
-          </ul>
+          <ul className="space-y-1">
+  {vehicles.map((v) => (
+    <li
+      key={v.id}
+      className={`rounded ${
+        selectedVehicle?.id === v.id
+          ? "bg-green-500 text-white"
+          : "bg-gray-100 hover:bg-gray-200"
+      }`}
+    >
+      {/* When click on vehicle > Service and invoice loads */}
+      <button
+        type="button"
+        className="w-full text-left p-2"
+        onClick={() => {
+          setSelectedVehicle(v);
+          fetchServices(v.id);
+          fetchInvoices(v.id);
+        }}
+      >
+        {v.brand} {v.model} ({v.plate_number})
+      </button>
+    </li>
+  ))}
+</ul>
+
         </div>
       )}
 
