@@ -275,16 +275,9 @@ return (
         }}
         className="flex gap-2 mb-4"
       >
-        <input
-          className="border p-2 rounded flex-1"
-          type="number"
-          placeholder="Invoice total"
-          value={invoiceTotal}
-          onChange={(e) => setInvoiceTotal(e.target.value)}
-          required
-        />
+        
         <button className="bg-blue-600 text-white px-4 rounded hover:bg-blue-700">
-          Add Invoice
+          Generate Invoice
         </button>
       </form>
 

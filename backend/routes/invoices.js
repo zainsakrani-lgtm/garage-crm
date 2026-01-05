@@ -23,49 +23,67 @@ router.get("/:vehicleId", async (req, res) => {
 });
 
 
-
 /* ======================
-   CREATE invoice
+   CREATE invoice (AUTO from unpaid services)
 ====================== */
 router.post("/", async (req, res) => {
-  const { vehicle_id, total } = req.body;
+  const { vehicle_id } = req.body;
 
-  if (!vehicle_id || !total) {
-    return res.status(400).json({ error: "vehicle_id and total are required" });
+  if (!vehicle_id) {
+    return res.status(400).json({ error: "vehicle_id is required" });
   }
 
-  const { data, error } = await supabase
-    .from("invoices")
-    .insert([{ vehicle_id, total, paid: false }])
-    .select();
+  try {
+    // 1️⃣ Fetch unpaid services
+    const { data: services, error: serviceError } = await supabase
+      .from("services")
+      .select("id, cost")
+      .eq("vehicle_id", vehicle_id)
+      .eq("status", "unpaid");
 
-  if (error) return res.status(500).json({ error: error.message });
+    if (serviceError) throw serviceError;
 
-  res.status(201).json(data[0]);
+    if (!services || services.length === 0) {
+      return res.status(400).json({
+        error: "No unpaid services to invoice",
+      });
+    }
+
+    // 2️⃣ Calculate total
+    const totalAmount = services.reduce(
+      (sum, s) => sum + Number(s.cost),
+      0
+    );
+
+    // 3️⃣ Create invoice
+    const { data: invoice, error: invoiceError } = await supabase
+      .from("invoices")
+      .insert([
+        {
+          vehicle_id,
+          total_amount: totalAmount,
+          status: "unpaid",
+          invoice_date: new Date(),
+        },
+      ])
+      .select()
+      .single();
+
+    if (invoiceError) throw invoiceError;
+
+    // 4️⃣ Mark services as PAID
+    const serviceIds = services.map((s) => s.id);
+
+    await supabase
+      .from("services")
+      .update({ status: "paid" })
+      .in("id", serviceIds);
+
+    res.status(201).json(invoice);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
-
-/* ======================
-   MARK new invoice as UNPAID
-====================== */
-router.post("/", async (req, res) => {
-  const { vehicle_id, total } = req.body;
-
-  const { data, error } = await supabase
-    .from("invoices")
-    .insert([
-      {
-        vehicle_id,
-        total,
-        status: "unpaid"
-      }
-    ])
-    .select();
-
-  if (error) return res.status(500).json({ error: error.message });
-
-  res.status(201).json(data[0]);
-});
-
 
 /* ======================
    MARK invoice as PAID
@@ -80,11 +98,29 @@ router.put("/:id/pay", async (req, res) => {
     .select();
 
   if (error) {
-    console.error("❌ Supabase error:", error);
     return res.status(500).json({ error: error.message });
   }
 
   res.json(data[0]);
 });
+
+
+
+/* ======================
+   Fetch ONLY unpaid services
+====================== */
+
+async function getUnpaidServices(vehicleId) {
+  const { data, error } = await supabase
+    .from("services")
+    .select("id, cost")
+    .eq("vehicle_id", vehicleId)
+    .eq("status", "unpaid");
+
+  if (error) throw error;
+
+  return data;
+}
+
 
 export default router;
