@@ -177,9 +177,10 @@ return (
         </div>
       )}
 
-      {/* SERVICES */}
-      {selectedVehicle && (
+      {/* SERVICES + INVOICES */}
+{selectedVehicle && (
   <div className="space-y-6">
+
     {/* ======================
         SERVICE HISTORY
     ====================== */}
@@ -224,61 +225,64 @@ return (
       </ul>
     </div>
 
-{/* ======================
-    INVOICES
-====================== */}
-<div>
-  <h2 className="text-xl font-semibold mb-2">Invoices</h2>
+    {/* ======================
+        INVOICES
+    ====================== */}
+    <div>
+      <h2 className="text-xl font-semibold mb-2">Invoices</h2>
 
-  <form
-    onSubmit={async (e) => {
-      e.preventDefault();
+      <form
+        onSubmit={async (e) => {
+          e.preventDefault();
 
-      await fetch(`${API}/invoices`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          vehicle_id: selectedVehicle.id,
-          total: invoiceTotal,
-        }),
-      });
+          await fetch(`${API}/invoices`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              vehicle_id: selectedVehicle.id,
+              total: invoiceTotal,
+            }),
+          });
 
-      setInvoiceTotal("");
-      fetchInvoices(selectedVehicle.id);
-    }}
-    className="flex gap-2 mb-4"
-  >
-    <input
-      className="border p-2 rounded flex-1"
-      type="number"
-      placeholder="Invoice total"
-      value={invoiceTotal}
-      onChange={(e) => setInvoiceTotal(e.target.value)}
-      required
-    />
-    <button className="bg-blue-600 text-white px-4 rounded hover:bg-blue-700">
-      Add Invoice
-    </button>
-  </form>
-
-  <ul className="space-y-1">
-    {invoices.map((inv) => (
-      <li
-        key={inv.id}
-        className={`p-2 rounded flex justify-between items-center ${
-          inv.paid ? "bg-green-100" : "bg-red-100"
-        }`}
+          setInvoiceTotal("");
+          fetchInvoices(selectedVehicle.id);
+        }}
+        className="flex gap-2 mb-4"
       >
-        <span>
-          🧾 Invoice #{inv.id} — 💲{inv.total}
-        </span>
-        <span className="font-semibold">
-          {inv.paid ? "PAID ✅" : "UNPAID ❌"}
-        </span>
-      </li>
-    ))}
-  </ul>
-</div>
+        <input
+          className="border p-2 rounded flex-1"
+          type="number"
+          placeholder="Invoice total"
+          value={invoiceTotal}
+          onChange={(e) => setInvoiceTotal(e.target.value)}
+          required
+        />
+        <button className="bg-blue-600 text-white px-4 rounded hover:bg-blue-700">
+          Add Invoice
+        </button>
+      </form>
+
+      <ul className="space-y-1">
+        {invoices.map((inv) => (
+          <li
+            key={inv.id}
+            className={`p-2 rounded flex justify-between items-center ${
+              inv.paid ? "bg-green-100" : "bg-red-100"
+            }`}
+          >
+            <span>
+              🧾 Invoice #{inv.id} — 💲{inv.total}
+            </span>
+            <span className="font-semibold">
+              {inv.paid ? "PAID ✅" : "UNPAID ❌"}
+            </span>
+          </li>
+        ))}
+      </ul>
+    </div>
+
+  </div>
+)}
 
     </div>
   </div>
@@ -287,4 +291,6 @@ return (
 }
 
 export default App;
+
+
 
