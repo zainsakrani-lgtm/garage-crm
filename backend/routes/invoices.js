@@ -1,25 +1,23 @@
 import express from "express";
 import { supabase } from "../supabaseClient.js";
-import path from "path";
-import { fileURLToPath } from "url";
+import PDFDocument from "pdfkit";
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 const router = express.Router();
 
 /* ======================
-   Create PDF Endpoint
+   CREATE PDF FOR INVOICE
 ====================== */
-import PDFDocument from "pdfkit";
-
 router.get("/:id/pdf", async (req, res) => {
   const { id } = req.params;
 
-  // 1. Get invoice
+  // 1️⃣ Fetch invoice
   const { data: invoice, error: invoiceError } = await supabase
     .from("invoices")
     .select(`
-      *,
+      id,
+      invoice_date,
+      total_amount,
+      status,
       vehicles (
         plate_number,
         brand,
@@ -38,34 +36,33 @@ router.get("/:id/pdf", async (req, res) => {
     return res.status(404).json({ error: "Invoice not found" });
   }
 
-  // 1.5 Get services for this vehicle
-const { data: services, error: servicesError } = await supabase
-  .from("services")
-  .select("description, cost, service_date")
-  .eq("vehicle_id", invoice.vehicle_id);
+  // 2️⃣ Fetch services linked to THIS invoice (Option A)
+  const {
+    data: invoiceServices,
+    error: invoiceServicesError,
+  } = await supabase
+    .from("invoice_services")
+    .select(`
+      services (
+        description,
+        cost
+      )
+    `)
+    .eq("invoice_id", id);
 
-if (servicesError) {
-  return res.status(500).json({ error: servicesError.message });
-}
+  if (invoiceServicesError) {
+    return res.status(500).json({ error: invoiceServicesError.message });
+  }
 
-
-  // 2. Create PDF
+  // 3️⃣ Create PDF
   const doc = new PDFDocument({ margin: 50 });
+
   res.setHeader("Content-Type", "application/pdf");
   res.setHeader("Content-Disposition", `inline; filename=invoice-${id}.pdf`);
 
   doc.pipe(res);
 
-  // 3. LOGO (replace with your logo URL)
-  //doc.image("https://YOUR_LOGO_URL_HERE", 50, 40, { width: 120 });
-  /*doc.image(path.join(__dirname, "C:\Software\Autocity\garage-crm\backend\assets\autocitylogo.jpg"), 50, 40, {
-  width: 120,
-});*/
-
-
-  doc.moveDown(2);
-
-  // 4. HEADER
+  // 4️⃣ HEADER
   doc
     .fontSize(20)
     .text("INVOICE", { align: "right" })
@@ -78,7 +75,7 @@ if (servicesError) {
 
   doc.moveDown(2);
 
-  // 5. BILL TO
+  // 5️⃣ BILL TO
   doc.fontSize(12).text("BILL TO");
   doc
     .fontSize(10)
@@ -88,43 +85,36 @@ if (servicesError) {
 
   doc.moveDown();
 
-  // 6. VEHICLE INFO
+  // 6️⃣ VEHICLE INFO
   doc.text(
     `Vehicle: ${invoice.vehicles.brand} ${invoice.vehicles.model} (${invoice.vehicles.plate_number})`
   );
 
   doc.moveDown(2);
 
-  // 7. SERVICES / LINE ITEMS
-doc.fontSize(12).text("Services");
+  // 7️⃣ SERVICES (ONLY linked to this invoice)
+  doc.fontSize(12).text("Services");
+  doc.moveDown(0.5);
 
-doc.moveDown(0.5);
+  invoiceServices.forEach((row, index) => {
+    const service = row.services;
+    doc
+      .fontSize(10)
+      .text(
+        `${index + 1}. ${service.description} — $${service.cost}`,
+        { indent: 20 }
+      );
+  });
 
-services.forEach((s, index) => {
-  doc
-    .fontSize(10)
-    .text(
-      `${index + 1}. ${s.description} — $${Number(s.cost || 0)}`,
-      { indent: 20 }
-    );
-});
-
-
-  // 7.1 Calculate Total from Services
-
-  const totalFromServices = services.reduce(
-  (sum, s) => sum + (Number(s.cost) || 0),
-  0
-);
-
-// 7.2 TOTAL
   doc.moveDown(2);
-doc.fontSize(14).text(`TOTAL: $${totalFromServices}`, {
-  align: "right",
-});
 
+  // 8️⃣ TOTAL (DO NOT recalculate)
+  doc.fontSize(14).text(
+    `TOTAL: $${invoice.total_amount}`,
+    { align: "right" }
+  );
 
-  // 8. PAID STAMP
+  // 9️⃣ PAID STAMP
   if (invoice.status === "paid") {
     doc
       .fontSize(50)
@@ -134,25 +124,24 @@ doc.fontSize(14).text(`TOTAL: $${totalFromServices}`, {
     doc.opacity(1).fillColor("black");
   }
 
-  // 9. FOOTER
+  // 🔚 FOOTER
   doc.moveDown(4);
   doc.fontSize(9).text("Thank you for your business!");
 
   doc.end();
 });
 
-
 /* ======================
    GET invoices for vehicle
 ====================== */
-// GET invoices for a vehicle
 router.get("/:vehicleId", async (req, res) => {
   const { vehicleId } = req.params;
 
   const { data, error } = await supabase
     .from("invoices")
     .select("*")
-    .eq("vehicle_id", vehicleId);
+    .eq("vehicle_id", vehicleId)
+    .order("invoice_date", { ascending: false });
 
   if (error) {
     return res.status(500).json({ error: error.message });
@@ -161,105 +150,43 @@ router.get("/:vehicleId", async (req, res) => {
   res.json(data || []);
 });
 
-
 /* ======================
-   CREATE invoice (AUTO from unpaid services)
+   CREATE INVOICE (Option A)
 ====================== */
-/*router.post("/", async (req, res) => {
-  const { vehicle_id } = req.body;
-
-  if (!vehicle_id) {
-    return res.status(400).json({ error: "vehicle_id is required" });
-  }
-
-  try {
-    // 1️⃣ Fetch unpaid services
-    const { data: services, error: serviceError } = await supabase
-      .from("services")
-      .select("id, cost")
-      .eq("vehicle_id", vehicle_id)
-      .eq("status", "unpaid");
-
-    if (serviceError) throw serviceError;
-
-    if (!services || services.length === 0) {
-      return res.status(400).json({
-        error: "No unpaid services to invoice",
-      });
-    }
-
-    // 2️⃣ Calculate total
-    const totalAmount = services.reduce(
-      (sum, s) => sum + Number(s.cost),
-      0
-    );
-
-    // 3️⃣ Create invoice
-    const { data: invoice, error: invoiceError } = await supabase
-      .from("invoices")
-      .insert([
-        {
-          vehicle_id,
-          total_amount: totalAmount,
-          status: "unpaid",
-          invoice_date: new Date(),
-        },
-      ])
-      .select()
-      .single();
-
-    if (invoiceError) throw invoiceError;
-
-    // 4️⃣ Mark services as PAID
-    const serviceIds = services.map((s) => s.id);
-
-    await supabase
-      .from("services")
-      .update({ status: "paid" })
-      .in("id", serviceIds);
-
-    res.status(201).json(invoice);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});*/
-
 router.post("/", async (req, res) => {
-  const { vehicle_id } = req.body;
+  const { vehicle_id, service_ids } = req.body;
 
-  if (!vehicle_id) {
-    return res.status(400).json({ error: "vehicle_id is required" });
+  if (!vehicle_id || !Array.isArray(service_ids) || service_ids.length === 0) {
+    return res.status(400).json({
+      error: "vehicle_id and service_ids[] are required",
+    });
   }
 
-  // 1. Get UNPAID services
+  // 1️⃣ Fetch selected services
   const { data: services, error: servicesError } = await supabase
     .from("services")
-    .select("*")
-    .eq("vehicle_id", vehicle_id)
-    .eq("status", "unpaid");
+    .select("id, cost")
+    .in("id", service_ids);
 
   if (servicesError) {
     return res.status(500).json({ error: servicesError.message });
   }
 
-  if (!services.length) {
-    return res.status(400).json({ error: "No unpaid services found" });
-  }
-
-  // 2. Calculate total
-  const total = services.reduce(
-    (sum, s) => sum + (Number(s.cost) || 0),
+  // 2️⃣ Calculate total ONCE
+  const total_amount = services.reduce(
+    (sum, s) => sum + Number(s.cost || 0),
     0
   );
 
-  // 3. Create invoice
+  // 3️⃣ Create invoice
   const { data: invoice, error: invoiceError } = await supabase
     .from("invoices")
     .insert([
       {
         vehicle_id,
-        total_amount: total,
+        total_amount,
         status: "unpaid",
+        invoice_date: new Date(),
       },
     ])
     .select()
@@ -269,17 +196,28 @@ router.post("/", async (req, res) => {
     return res.status(500).json({ error: invoiceError.message });
   }
 
-  // 4. ✅ STEP 5 — MARK SERVICES AS INVOICED
+  // 4️⃣ Link services to invoice
+  const links = service_ids.map((service_id) => ({
+    invoice_id: invoice.id,
+    service_id,
+  }));
+
+  const { error: linkError } = await supabase
+    .from("invoice_services")
+    .insert(links);
+
+  if (linkError) {
+    return res.status(500).json({ error: linkError.message });
+  }
+
+  // 5️⃣ Mark services as invoiced
   await supabase
     .from("services")
     .update({ status: "invoiced" })
-    .eq("vehicle_id", vehicle_id)
-    .eq("status", "unpaid");
+    .in("id", service_ids);
 
-  // 5. Return invoice
   res.status(201).json(invoice);
 });
-
 
 /* ======================
    MARK invoice as PAID
@@ -291,32 +229,14 @@ router.put("/:id/pay", async (req, res) => {
     .from("invoices")
     .update({ status: "paid" })
     .eq("id", id)
-    .select();
+    .select()
+    .single();
 
   if (error) {
     return res.status(500).json({ error: error.message });
   }
 
-  res.json(data[0]);
+  res.json(data);
 });
-
-
-
-/* ======================
-   Fetch ONLY unpaid services
-====================== */
-
-async function getUnpaidServices(vehicleId) {
-  const { data, error } = await supabase
-    .from("services")
-    .select("id, cost")
-    .eq("vehicle_id", vehicleId)
-    .eq("status", "unpaid");
-
-  if (error) throw error;
-
-  return data;
-}
-
 
 export default router;
