@@ -4,6 +4,102 @@ import { supabase } from "../supabaseClient.js";
 const router = express.Router();
 
 /* ======================
+   Create PDF Endpoint
+====================== */
+import PDFDocument from "pdfkit";
+
+router.get("/:id/pdf", async (req, res) => {
+  const { id } = req.params;
+
+  // 1. Get invoice
+  const { data: invoice, error: invoiceError } = await supabase
+    .from("invoices")
+    .select(`
+      *,
+      vehicles (
+        plate_number,
+        brand,
+        model,
+        customers (
+          name,
+          phone,
+          email
+        )
+      )
+    `)
+    .eq("id", id)
+    .single();
+
+  if (invoiceError || !invoice) {
+    return res.status(404).json({ error: "Invoice not found" });
+  }
+
+  // 2. Create PDF
+  const doc = new PDFDocument({ margin: 50 });
+  res.setHeader("Content-Type", "application/pdf");
+  res.setHeader("Content-Disposition", `inline; filename=invoice-${id}.pdf`);
+
+  doc.pipe(res);
+
+  // 3. LOGO (replace with your logo URL)
+  doc.image("https://YOUR_LOGO_URL_HERE", 50, 40, { width: 120 });
+
+  doc.moveDown(2);
+
+  // 4. HEADER
+  doc
+    .fontSize(20)
+    .text("INVOICE", { align: "right" })
+    .moveDown();
+
+  doc
+    .fontSize(10)
+    .text(`Invoice ID: ${invoice.id}`, { align: "right" })
+    .text(`Date: ${invoice.invoice_date}`, { align: "right" });
+
+  doc.moveDown(2);
+
+  // 5. BILL TO
+  doc.fontSize(12).text("BILL TO");
+  doc
+    .fontSize(10)
+    .text(invoice.vehicles.customers.name)
+    .text(invoice.vehicles.customers.phone || "")
+    .text(invoice.vehicles.customers.email || "");
+
+  doc.moveDown();
+
+  // 6. VEHICLE INFO
+  doc.text(
+    `Vehicle: ${invoice.vehicles.brand} ${invoice.vehicles.model} (${invoice.vehicles.plate_number})`
+  );
+
+  doc.moveDown(2);
+
+  // 7. TOTAL
+  doc.fontSize(14).text(`TOTAL: $${invoice.total_amount || invoice.total}`, {
+    align: "right",
+  });
+
+  // 8. PAID STAMP
+  if (invoice.status === "paid") {
+    doc
+      .fontSize(50)
+      .fillColor("green")
+      .opacity(0.3)
+      .text("PAID", 200, 400, { rotate: -30 });
+    doc.opacity(1).fillColor("black");
+  }
+
+  // 9. FOOTER
+  doc.moveDown(4);
+  doc.fontSize(9).text("Thank you for your business!");
+
+  doc.end();
+});
+
+
+/* ======================
    GET invoices for vehicle
 ====================== */
 // GET invoices for a vehicle

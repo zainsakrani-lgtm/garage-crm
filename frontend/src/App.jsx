@@ -337,28 +337,42 @@ return (
         🧾 Invoice — 💲{inv.total_amount ?? 0}
       </span>
 
-      {inv.status === "paid" ? (
-        <span className="font-semibold text-green-700">
-          PAID ✅
-        </span>
-      ) : (
-        <button
-          type="button"
-          onClick={async () => {
-            await fetch(`${API}/invoices/${inv.id}/pay`, {
-              method: "PUT",
-            });
-
-            fetchInvoices(selectedVehicle.id);
-          }}
-          className="bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700"
+      <div className="flex items-center gap-3">
+        {/* PDF ICON — SAFE, READ-ONLY */}
+        <a
+          href={`${API}/invoices/${inv.id}/pdf`}
+          target="_blank"
+          rel="noopener noreferrer"
+          title="Open invoice PDF"
+          className="text-blue-600 hover:text-blue-800"
         >
-          Mark as Paid
-        </button>
-      )}
+          📄
+        </a>
+
+        {inv.status === "paid" ? (
+          <span className="font-semibold text-green-700">
+            PAID ✅
+          </span>
+        ) : (
+          <button
+            type="button"
+            onClick={async () => {
+              await fetch(`${API}/invoices/${inv.id}/pay`, {
+                method: "PUT",
+              });
+
+              fetchInvoices(selectedVehicle.id);
+            }}
+            className="bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700"
+          >
+            Mark as Paid
+          </button>
+        )}
+      </div>
     </li>
   ))}
 </ul>
+
 
 
     </div>
