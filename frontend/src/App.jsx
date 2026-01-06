@@ -227,66 +227,84 @@ return (
 )}
 
 
-      {/* VEHICLES */}
-      {selectedCustomer && (
-        <div className="mb-6">
-          <h2 className="text-xl font-semibold mb-2">
-            Vehicles of {selectedCustomer.name}
-          </h2>
+{/* VEHICLES */}
+{selectedCustomer && (
+  <div className="mb-6">
+    <h2 className="text-xl font-semibold mb-2">
+      Vehicles of {selectedCustomer.name}
+    </h2>
 
-          <form
-            onSubmit={addVehicle}
-            className="grid grid-cols-2 gap-2 mb-4"
+    <form onSubmit={addVehicle} className="grid grid-cols-2 gap-2 mb-4">
+      <input
+        className="border p-2 rounded"
+        placeholder="Brand"
+        value={brand}
+        onChange={(e) => setBrand(e.target.value)}
+        required
+      />
+      <input
+        className="border p-2 rounded"
+        placeholder="Model"
+        value={model}
+        onChange={(e) => setModel(e.target.value)}
+        required
+      />
+      <input
+        className="border p-2 rounded"
+        placeholder="Plate"
+        value={plate}
+        onChange={(e) => setPlate(e.target.value)}
+      />
+      <input
+        className="border p-2 rounded"
+        placeholder="Year"
+        value={year}
+        onChange={(e) => setYear(e.target.value)}
+      />
+      <button className="col-span-2 bg-blue-600 text-white p-2 rounded hover:bg-blue-700">
+        Add Vehicle
+      </button>
+    </form>
+
+    <ul className="space-y-1">
+      {vehicles.map((v) => (
+        <li
+          key={v.id}
+          className={`rounded ${
+            selectedVehicle?.id === v.id
+              ? "bg-green-500 text-white"
+              : "bg-gray-100 hover:bg-gray-200"
+          }`}
+        >
+          <button
+            type="button"
+            className="w-full text-left p-2"
+            onClick={async () => {
+              setSelectedVehicle(v);
+              await Promise.all([
+                fetchServices(v.id),
+                fetchInvoices(v.id),
+              ]);
+            }}
           >
-            <input className="border p-2 rounded" placeholder="Brand" value={brand} onChange={(e) => setBrand(e.target.value)} required />
-            <input className="border p-2 rounded" placeholder="Model" value={model} onChange={(e) => setModel(e.target.value)} required />
-            <input className="border p-2 rounded" placeholder="Plate" value={plate} onChange={(e) => setPlate(e.target.value)} />
-            <input className="border p-2 rounded" placeholder="Year" value={year} onChange={(e) => setYear(e.target.value)} />
-            <button className="col-span-2 bg-blue-600 text-white p-2 rounded hover:bg-blue-700">
-              Add Vehicle
-            </button>
-          </form>
+            {v.brand} {v.model} ({v.plate_number})
+          </button>
+        </li>
+      ))}
+    </ul>
 
+    {/* OPEN JOB CARD (only when vehicle selected) */}
+    {selectedVehicle && (
+      <button
+        className="mt-4 bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700"
+        onClick={() => setShowJobCard(true)}
+      >
+        ➕ Open Job Card
+      </button>
+    )}
+  </div>
+)}
 
-          <ul className="space-y-1">
-  {vehicles.map((v) => (
-    <li
-      key={v.id}
-      className={`rounded ${
-        selectedVehicle?.id === v.id
-          ? "bg-green-500 text-white"
-          : "bg-gray-100 hover:bg-gray-200"
-      }`}
-    >
-      
-{/* OPEN JOB CARD */}
-  <button
-  className="bg-indigo-600 text-white px-4 py-2 rounded"
-  onClick={() => setShowJobCard(true)}
->
-  ➕ Open Job Card
-</button>
-
-      
-  <button
-  type="button"
-  className="w-full text-left p-2"
-  onClick={async () => {
-    setSelectedVehicle(v);
-
-    await Promise.all([
-      fetchServices(v.id),
-      fetchInvoices(v.id),
-    ]);
-  }}
->
-  {v.brand} {v.model} ({v.plate_number})
-</button>
-
-</ul>
-
-        </div>
-      )}
 
       {/* SERVICES + INVOICES */}
 {selectedVehicle && (
