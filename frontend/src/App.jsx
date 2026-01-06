@@ -98,11 +98,26 @@ function App() {
     setServices([]);
   };
 
-  const fetchServices = async (vehicleId) => {
-    const res = await fetch(`${API}/services/${vehicleId}`);
-    const data = await res.json();
-    setServices(data);
-  };
+const fetchServices = async (vehicleId) => {
+  const res = await fetch(`${API}/services/${vehicleId}`);
+  const data = await res.json();
+
+  setServices(data);
+
+  // 🧾 Restore Job Card from unpaid services
+  const unpaid = data.filter((s) => s.status === "unpaid");
+
+  if (unpaid.length > 0) {
+    setCurrentJob({
+      vehicle: selectedVehicle,
+      services: unpaid,
+      date: new Date().toISOString(),
+    });
+  } else {
+    setCurrentJob(null);
+  }
+};
+
 
   // FETCH INVOICES FROM BACKEND
   /* MODIFIED ON 050126
@@ -176,11 +191,11 @@ async function saveJobCard() {
     savedServices.push(saved);
   }
 
-  setCurrentJob({
+  /*setCurrentJob({
     vehicle: selectedVehicle,
     services: savedServices,
     date: new Date().toISOString(),
-  });
+  });*/
 
   setShowJobCard(false);
   setJobServices([{ description: "", cost: "" }]);
