@@ -1,6 +1,10 @@
 import express from "express";
 import { supabase } from "../supabaseClient.js";
+import path from "path";
+import { fileURLToPath } from "url";
 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 const router = express.Router();
 
 /* ======================
@@ -42,7 +46,11 @@ router.get("/:id/pdf", async (req, res) => {
   doc.pipe(res);
 
   // 3. LOGO (replace with your logo URL)
-  doc.image("https://YOUR_LOGO_URL_HERE", 50, 40, { width: 120 });
+  //doc.image("https://YOUR_LOGO_URL_HERE", 50, 40, { width: 120 });
+  doc.image(path.join(__dirname, "C:\Software\Autocity\garage-crm\backend\assets\autocitylogo.jpg"), 50, 40, {
+  width: 120,
+});
+
 
   doc.moveDown(2);
 
