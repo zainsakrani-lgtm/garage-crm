@@ -47,9 +47,9 @@ router.get("/:id/pdf", async (req, res) => {
 
   // 3. LOGO (replace with your logo URL)
   //doc.image("https://YOUR_LOGO_URL_HERE", 50, 40, { width: 120 });
-  doc.image(path.join(__dirname, "C:\Software\Autocity\garage-crm\backend\assets\autocitylogo.jpg"), 50, 40, {
+  /*doc.image(path.join(__dirname, "C:\Software\Autocity\garage-crm\backend\assets\autocitylogo.jpg"), 50, 40, {
   width: 120,
-});
+});*/
 
 
   doc.moveDown(2);
