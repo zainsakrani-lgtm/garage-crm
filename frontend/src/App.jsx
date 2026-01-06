@@ -4,6 +4,13 @@ const API = "https://garage-crm-backend.onrender.com";
 
 function App() {
 
+  // Job Service State
+  const [showJobCard, setShowJobCard] = useState(false);
+  const [jobServices, setJobServices] = useState([
+  { description: "", cost: "" },
+]);
+
+
   // SEARCH OPTION
   const [searchTerm, setSearchTerm] = useState("");
   const [searchError, setSearchError] = useState("");
@@ -144,6 +151,29 @@ function App() {
     fetchVehicles(selectedCustomer.id);
   };
 
+// ADD JOB CARD
+async function saveJobCard() {
+  for (const s of jobServices) {
+    if (!s.description || !s.cost) continue;
+
+    await fetch(`${API}/services`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        vehicle_id: selectedVehicle.id,
+        description: s.description,
+        cost: s.cost,
+        status: "unpaid",
+      }),
+    });
+  }
+
+  setShowJobCard(false);
+  setJobServices([{ description: "", cost: "" }]);
+  fetchServices(selectedVehicle.id);
+}
+
+
   // ADD SERVICE
   const addService = async (e) => {
     e.preventDefault();
@@ -228,20 +258,31 @@ return (
           : "bg-gray-100 hover:bg-gray-200"
       }`}
     >
-      {/* When click on vehicle > Service and invoice loads */}
-      <button
-        type="button"
-        className="w-full text-left p-2"
-        onClick={() => {
-          setSelectedVehicle(v);
-          fetchServices(v.id);
-          fetchInvoices(v.id);
-        }}
-      >
-        {v.brand} {v.model} ({v.plate_number})
-      </button>
-    </li>
-  ))}
+      
+{/* OPEN JOB CARD */}
+  <button
+  className="bg-indigo-600 text-white px-4 py-2 rounded"
+  onClick={() => setShowJobCard(true)}
+>
+  ➕ Open Job Card
+</button>
+
+      
+  <button
+  type="button"
+  className="w-full text-left p-2"
+  onClick={async () => {
+    setSelectedVehicle(v);
+
+    await Promise.all([
+      fetchServices(v.id),
+      fetchInvoices(v.id),
+    ]);
+  }}
+>
+  {v.brand} {v.model} ({v.plate_number})
+</button>
+
 </ul>
 
         </div>
@@ -254,46 +295,69 @@ return (
     {/* ======================
         SERVICE HISTORY
     ====================== */}
-    <div>
-      <h2 className="text-xl font-semibold mb-2">Service History</h2>
+    {showJobCard && (
+  <div className="fixed top-0 right-0 h-full w-96 bg-white shadow-xl p-6 z-50">
+    <h2 className="text-xl font-bold mb-4">Job Card</h2>
 
-      <form
-        onSubmit={addService}
-        className="grid grid-cols-3 gap-2 mb-4"
-      >
+    <p><strong>Client:</strong> {selectedCustomer.name}</p>
+    <p><strong>Vehicle:</strong> {selectedVehicle.brand} {selectedVehicle.model}</p>
+    <p><strong>Plate:</strong> {selectedVehicle.plate_number}</p>
+
+    <hr className="my-4" />
+
+    {jobServices.map((s, index) => (
+      <div key={index} className="flex gap-2 mb-2">
         <input
-          className="border p-2 rounded col-span-3"
-          placeholder="Description"
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
-          required
+          className="border p-2 flex-1"
+          placeholder="Service description"
+          value={s.description}
+          onChange={(e) => {
+            const copy = [...jobServices];
+            copy[index].description = e.target.value;
+            setJobServices(copy);
+          }}
         />
         <input
-          className="border p-2 rounded"
           type="number"
-          placeholder="Cost"
-          value={cost}
-          onChange={(e) => setCost(e.target.value)}
+          className="border p-2 w-24"
+          placeholder="$"
+          value={s.cost}
+          onChange={(e) => {
+            const copy = [...jobServices];
+            copy[index].cost = e.target.value;
+            setJobServices(copy);
+          }}
         />
-        <input
-          className="border p-2 rounded"
-          type="date"
-          value={serviceDate}
-          onChange={(e) => setServiceDate(e.target.value)}
-        />
-        <button className="bg-green-600 text-white p-2 rounded hover:bg-green-700 col-span-3">
-          Add Service
-        </button>
-      </form>
+      </div>
+    ))}
 
-      <ul className="space-y-1">
-        {services.map((s) => (
-          <li key={s.id} className="p-2 bg-gray-100 rounded">
-            📅 {s.service_date} — {s.description} — 💲{s.cost}
-          </li>
-        ))}
-      </ul>
+    <button
+      className="text-blue-600 mt-2"
+      onClick={() =>
+        setJobServices([...jobServices, { description: "", cost: "" }])
+      }
+    >
+      ➕ Add service line
+    </button>
+
+    <div className="mt-6 flex gap-2">
+      <button
+        className="bg-green-600 text-white px-4 py-2 rounded"
+        onClick={saveJobCard}
+      >
+        Save Job Card
+      </button>
+
+      <button
+        className="bg-gray-300 px-4 py-2 rounded"
+        onClick={() => setShowJobCard(false)}
+      >
+        Close
+      </button>
     </div>
+  </div>
+)}
+
 
     {/* ======================
         INVOICES
