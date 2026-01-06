@@ -4,6 +4,10 @@ const API = "https://garage-crm-backend.onrender.com";
 
 function App() {
 
+// Selected for invoice
+  const [selectedForInvoice, setSelectedForInvoice] = useState([]);
+
+
   // Job Service State
   const [showJobCard, setShowJobCard] = useState(false);
   const [jobServices, setJobServices] = useState([
@@ -202,6 +206,17 @@ async function saveJobCard() {
   fetchServices(selectedVehicle.id);
 }
 
+// SAVE EDITS TO DB
+async function updateService(service) {
+  await fetch(`${API}/services/${service.id}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      description: service.description,
+      cost: service.cost,
+    }),
+  });
+}
 
 
   // ADD SERVICE
@@ -406,22 +421,67 @@ return (
   </div>
 )}
 
+{/* Job card summary - yellow box */}
+
 {currentJob && (
   <div className="bg-yellow-50 border border-yellow-300 p-4 rounded mb-4">
     <h3 className="font-semibold mb-2">🧾 Current Job Card</h3>
-    <p className="text-sm text-gray-600">
+
+    <p className="text-sm text-gray-600 mb-2">
       {selectedCustomer.name} — {selectedVehicle.brand} {selectedVehicle.model}
     </p>
 
-    <ul className="mt-2 text-sm">
-      {currentJob.services.map((s, i) => (
-        <li key={i}>
-          • {s.description} — 💲{s.cost}
+    <ul className="space-y-2">
+      {currentJob.services.map((s) => (
+        <li key={s.id} className="flex items-center gap-2">
+          <input
+            type="checkbox"
+            checked={selectedForInvoice.includes(s.id)}
+            onChange={() => {
+              setSelectedForInvoice((prev) =>
+                prev.includes(s.id)
+                  ? prev.filter((id) => id !== s.id)
+                  : [...prev, s.id]
+              );
+            }}
+          />
+
+          <input
+  className="border p-1 flex-1 rounded"
+  value={s.description}
+  onChange={(e) => {
+    const updated = currentJob.services.map((item) =>
+      item.id === s.id
+        ? { ...item, description: e.target.value }
+        : item
+    );
+    setCurrentJob({ ...currentJob, services: updated });
+  }}
+  onBlur={() => updateService(s)}
+/>
+
+
+          <input
+  type="number"
+  className="border p-1 w-24 rounded"
+  value={s.cost}
+  onChange={(e) => {
+    const updated = currentJob.services.map((item) =>
+      item.id === s.id
+        ? { ...item, cost: e.target.value }
+        : item
+    );
+    setCurrentJob({ ...currentJob, services: updated });
+  }}
+  onBlur={() => updateService(s)}
+/>
+
         </li>
       ))}
     </ul>
   </div>
 )}
+
 
     {/* ======================
         INVOICES
