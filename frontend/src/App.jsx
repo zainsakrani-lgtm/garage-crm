@@ -4,6 +4,51 @@ const API = "https://garage-crm-backend.onrender.com";
 
 function App() {
 
+  // SEARCH OPTION
+  const [searchTerm, setSearchTerm] = useState("");
+  const [searchError, setSearchError] = useState("");
+
+
+  // CREATE SEARCH HANDLER
+  const handleSearch = (e) => {
+  e.preventDefault();
+
+  if (!searchTerm.trim()) return;
+
+  const term = searchTerm.toLowerCase();
+
+  // Find customer by name or phone
+  const customerMatch = customers.find(
+    (c) =>
+      c.name?.toLowerCase().includes(term) ||
+      c.phone?.toLowerCase().includes(term)
+  );
+
+  if (customerMatch) {
+    setSelectedCustomer(customerMatch);
+    setSelectedVehicle(null);
+    fetchVehicles(customerMatch.id);
+    setSearchError("");
+    return;
+  }
+
+  // Find by vehicle plate
+  const vehicleMatch = vehicles.find((v) =>
+    v.plate_number?.toLowerCase().includes(term)
+  );
+
+  if (vehicleMatch) {
+    setSelectedVehicle(vehicleMatch);
+    fetchServices(vehicleMatch.id);
+    fetchInvoices(vehicleMatch.id);
+    setSearchError("");
+    return;
+  }
+
+  setSearchError("No customer or vehicle found");
+};
+
+
   // STATE for INVOICES
   /* invoices → list of invoices from backend
   invoiceTotal → input value from form*/
@@ -129,29 +174,28 @@ return (
     <div className="max-w-5xl mx-auto bg-white rounded-xl shadow p-6">
       <h1 className="text-3xl font-bold mb-6 text-center">🚗 Garage CRM</h1>
 
-      {/* CUSTOMERS */}
-      <div className="mb-6">
-        <h2 className="text-xl font-semibold mb-2">Customers</h2>
-        <ul className="space-y-1">
-          {customers.map((c) => (
-            <li
-              key={c.id}
-              className={`p-2 rounded cursor-pointer ${
-                selectedCustomer?.id === c.id
-                  ? "bg-blue-500 text-white"
-                  : "bg-gray-100 hover:bg-gray-200"
-              }`}
-              onClick={() => {
-                setSelectedCustomer(c);
-                setSelectedVehicle(null);
-                fetchVehicles(c.id);
-              }}
-            >
-              {c.name}
-            </li>
-          ))}
-        </ul>
-      </div>
+      
+      
+      {/* SEARCH BAR */}
+<form
+  onSubmit={handleSearch}
+  className="flex justify-center mb-8"
+>
+  <input
+    type="text"
+    placeholder="Search by name, phone, or vehicle plate..."
+    value={searchTerm}
+    onChange={(e) => setSearchTerm(e.target.value)}
+    className="w-full max-w-2xl border p-3 rounded text-lg"
+  />
+</form>
+
+{searchError && (
+  <p className="text-center text-red-600 mb-4">
+    {searchError}
+  </p>
+)}
+
 
       {/* VEHICLES */}
       {selectedCustomer && (
