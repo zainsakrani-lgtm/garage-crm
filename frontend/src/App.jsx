@@ -62,6 +62,9 @@ function App() {
   const [invoices, setInvoices] = useState([]);
   const [invoiceTotal, setInvoiceTotal] = useState("");
 
+  // CURRENT JOB
+  const [currentJob, setCurrentJob] = useState(null);
+
   // DATA STATE
   const [customers, setCustomers] = useState([]);
   const [vehicles, setVehicles] = useState([]);
@@ -153,10 +156,12 @@ function App() {
 
 // ADD JOB CARD
 async function saveJobCard() {
+  const savedServices = [];
+
   for (const s of jobServices) {
     if (!s.description || !s.cost) continue;
 
-    await fetch(`${API}/services`, {
+    const res = await fetch(`${API}/services`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -166,12 +171,22 @@ async function saveJobCard() {
         status: "unpaid",
       }),
     });
+
+    const saved = await res.json();
+    savedServices.push(saved);
   }
+
+  setCurrentJob({
+    vehicle: selectedVehicle,
+    services: savedServices,
+    date: new Date().toISOString(),
+  });
 
   setShowJobCard(false);
   setJobServices([{ description: "", cost: "" }]);
   fetchServices(selectedVehicle.id);
 }
+
 
 
   // ADD SERVICE
@@ -376,6 +391,22 @@ return (
   </div>
 )}
 
+{currentJob && (
+  <div className="bg-yellow-50 border border-yellow-300 p-4 rounded mb-4">
+    <h3 className="font-semibold mb-2">🧾 Current Job Card</h3>
+    <p className="text-sm text-gray-600">
+      {selectedCustomer.name} — {selectedVehicle.brand} {selectedVehicle.model}
+    </p>
+
+    <ul className="mt-2 text-sm">
+      {currentJob.services.map((s, i) => (
+        <li key={i}>
+          • {s.description} — 💲{s.cost}
+        </li>
+      ))}
+    </ul>
+  </div>
+)}
 
     {/* ======================
         INVOICES
