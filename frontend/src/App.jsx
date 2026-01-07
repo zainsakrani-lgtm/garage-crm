@@ -244,6 +244,29 @@ async function updateService(service) {
     fetchCustomers();
   }, []);
 
+  // GENERATE INVOICE FUNCTION
+
+  async function generateInvoice() {
+  if (selectedForInvoice.length === 0) {
+    alert("Select at least one service to invoice");
+    return;
+  }
+
+  await fetch(`${API}/invoices`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      vehicle_id: selectedVehicle.id,
+      service_ids: selectedForInvoice,
+    }),
+  });
+
+  setSelectedForInvoice([]);
+  fetchServices(selectedVehicle.id);
+  fetchInvoices(selectedVehicle.id);
+}
+
+
 return (
   <div className="min-h-screen bg-gray-100 p-6">
     <div className="max-w-5xl mx-auto bg-white rounded-xl shadow p-6">
@@ -435,16 +458,20 @@ return (
       {currentJob.services.map((s) => (
         <li key={s.id} className="flex items-center gap-2">
           <input
-            type="checkbox"
-            checked={selectedForInvoice.includes(s.id)}
-            onChange={() => {
-              setSelectedForInvoice((prev) =>
-                prev.includes(s.id)
-                  ? prev.filter((id) => id !== s.id)
-                  : [...prev, s.id]
-              );
-            }}
-          />
+  type="checkbox"
+  disabled={s.status === "invoiced"}
+  checked={selectedForInvoice.includes(s.id)}
+  onChange={() => {
+    if (s.status === "invoiced") return;
+
+    setSelectedForInvoice((prev) =>
+      prev.includes(s.id)
+        ? prev.filter((id) => id !== s.id)
+        : [...prev, s.id]
+    );
+  }}
+/>
+
 
           <input
   className="border p-1 flex-1 rounded"
@@ -458,6 +485,8 @@ return (
     setCurrentJob({ ...currentJob, services: updated });
   }}
   onBlur={() => updateService(s)}
+  disabled={s.status === "invoiced"}
+
 />
 
 
@@ -474,11 +503,21 @@ return (
     setCurrentJob({ ...currentJob, services: updated });
   }}
   onBlur={() => updateService(s)}
+  disabled={s.status === "invoiced"}
+
 />
 
         </li>
       ))}
     </ul>
+
+    <button
+  onClick={generateInvoice}
+  className="mt-3 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+>
+  🧾 Generate Invoice
+</button>
+
   </div>
 )}
 
@@ -508,9 +547,9 @@ return (
         className="flex gap-2 mb-4"
       >
         
-        <button className="bg-blue-600 text-white px-4 rounded hover:bg-blue-700">
+        {/*<button className="bg-blue-600 text-white px-4 rounded hover:bg-blue-700">
           Generate Invoice
-        </button>
+        </button>*/}
       </form>
 
       <ul className="space-y-1">
