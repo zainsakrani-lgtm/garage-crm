@@ -108,19 +108,17 @@ const fetchServices = async (vehicleId) => {
 
   setServices(data);
 
-  // 🧾 Restore Job Card from unpaid services
-  const unpaid = data.filter((s) => s.status === "unpaid");
-
-  if (unpaid.length > 0) {
+  if (data.length > 0) {
     setCurrentJob({
       vehicle: selectedVehicle,
-      services: unpaid,
+      services: data, // 👈 keep ALL services
       date: new Date().toISOString(),
     });
   } else {
     setCurrentJob(null);
   }
 };
+
 
 
   // FETCH INVOICES FROM BACKEND
@@ -504,7 +502,6 @@ return (
   }}
   onBlur={() => updateService(s)}
   disabled={s.status === "invoiced"}
-
 />
 
         </li>
