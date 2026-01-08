@@ -349,12 +349,27 @@ return (
             type="button"
             className="w-full text-left p-2"
             onClick={async () => {
-              setSelectedVehicle(v);
-              await Promise.all([
-                fetchServices(v.id),
-                fetchInvoices(v.id),
-              ]);
-            }}
+  setSelectedVehicle(v);
+
+  const res = await fetch(`${API}/services/${v.id}`);
+  const data = await res.json();
+
+  setServices(data);
+
+  if (data.length > 0) {
+    setCurrentJob({
+      vehicle: v,
+      services: data,
+      date: data[0].created_at,
+    });
+  } else {
+    setCurrentJob(null);
+  }
+
+  fetchInvoices(v.id);
+}}
+
+            
           >
             {v.brand} {v.model} ({v.plate_number})
           </button>
