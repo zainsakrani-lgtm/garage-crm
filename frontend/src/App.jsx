@@ -446,11 +446,22 @@ return (
 
 {currentJob && (
   <div className="bg-yellow-50 border border-yellow-300 p-4 rounded mb-4">
-    <h3 className="font-semibold mb-2">🧾 Current Job Card</h3>
+    <h3 className="font-semibold mb-1 flex justify-between items-center">
+  <span>🧾 Current Job Card</span>
+  <span className="text-sm text-gray-500">
+    JC-{currentJob.services[0]?.id.slice(0, 6).toUpperCase()}
+  </span>
+</h3>
 
-    <p className="text-sm text-gray-600 mb-2">
-      {selectedCustomer.name} — {selectedVehicle.brand} {selectedVehicle.model}
-    </p>
+<p className="text-sm text-gray-600">
+  {selectedCustomer.name} ({selectedCustomer.phone || "No phone"}) —{" "}
+  {selectedVehicle.brand} {selectedVehicle.model}
+</p>
+
+<p className="text-xs text-gray-500 mb-3">
+  Created: {new Date(currentJob.services[0]?.created_at).toLocaleDateString()}
+</p>
+
 
     <ul className="space-y-2">
       {currentJob.services.map((s) => (

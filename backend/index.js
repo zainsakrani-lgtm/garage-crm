@@ -106,7 +106,7 @@ app.get("/services/:vehicleId", async (req, res) => {
 
   const { data, error } = await supabase
     .from("services")
-    .select("*")
+    .select("id, description, cost, status, created_at")
     .eq("vehicle_id", vehicleId)
     .order("service_date", { ascending: false });
 
