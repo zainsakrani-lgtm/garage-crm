@@ -106,7 +106,7 @@ app.get("/services/:vehicleId", async (req, res) => {
 
   const { data, error } = await supabase
     .from("services")
-    .select("id, description, cost, status, created_at")
+    .select("id, issue, service, cost, status, created_at")
     .eq("vehicle_id", vehicleId)
     .order("service_date", { ascending: false });
 
@@ -119,17 +119,33 @@ app.get("/services/:vehicleId", async (req, res) => {
 
 // Add service
 app.post("/services", async (req, res) => {
-  const { vehicle_id, description, cost, service_date } = req.body;
+  const {
+    vehicle_id,
+    issue,
+    service,
+    description,
+    cost,
+    service_date,
+    status
+  } = req.body;
 
-  if (!vehicle_id || !description) {
-    return res
-      .status(400)
-      .json({ error: "vehicle_id and description are required" });
+  if (!vehicle_id) {
+    return res.status(400).json({ error: "vehicle_id is required" });
   }
 
   const { data, error } = await supabase
     .from("services")
-    .insert([{ vehicle_id, description, cost, service_date }])
+    .insert([
+      {
+        vehicle_id,
+        issue: issue || description || "",
+        service: service || "",
+        description: description || "",
+        cost,
+        service_date,
+        status: status || "unpaid",
+      },
+    ])
     .select();
 
   if (error) {
@@ -138,6 +154,25 @@ app.post("/services", async (req, res) => {
 
   res.status(201).json(data[0]);
 });
+
+app.put("/services/:id", async (req, res) => {
+  const { id } = req.params;
+  const { issue, service, cost } = req.body;
+
+  const { data, error } = await supabase
+    .from("services")
+    .update({ issue, service, cost })
+    .eq("id", id)
+    .select();
+
+  if (error) {
+    return res.status(500).json({ error: error.message });
+  }
+
+  res.json(data[0]);
+});
+
+
 
 /* --------------------
    INVOICES ROUTES
