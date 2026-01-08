@@ -105,20 +105,8 @@ function App() {
 const fetchServices = async (vehicleId) => {
   const res = await fetch(`${API}/services/${vehicleId}`);
   const data = await res.json();
-
   setServices(data);
-
-  if (data.length > 0) {
-    setCurrentJob({
-      vehicle: selectedVehicle,
-      services: data, // 👈 keep ALL services
-      date: new Date().toISOString(),
-    });
-  } else {
-    setCurrentJob(null);
-  }
 };
-
 
 
   // FETCH INVOICES FROM BACKEND
@@ -245,7 +233,7 @@ async function updateService(service) {
     fetchCustomers();
   }, []);
 
-  useEffect(() => {
+ useEffect(() => {
   if (selectedVehicle && services.length > 0) {
     setCurrentJob({
       vehicle: selectedVehicle,
@@ -256,6 +244,7 @@ async function updateService(service) {
     setCurrentJob(null);
   }
 }, [services, selectedVehicle]);
+
 
 
   // GENERATE INVOICE FUNCTION
@@ -369,15 +358,7 @@ return (
 
   setServices(data);
 
-  if (data.length > 0) {
-    setCurrentJob({
-      vehicle: v,
-      services: data,
-      date: data[0].created_at,
-    });
-  } else {
-    setCurrentJob(null);
-  }
+
 
   fetchInvoices(v.id);
 }}
