@@ -210,11 +210,14 @@ async function updateService(service) {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
-      description: service.description,
+      issue: service.issue || service.description || "",
+      service: service.service || "",
       cost: service.cost,
     }),
   });
 }
+
+
 
 
   // ADD SERVICE
@@ -465,58 +468,74 @@ return (
 
     <ul className="space-y-2">
       {currentJob.services.map((s) => (
-        <li key={s.id} className="flex items-center gap-2">
-          <input
-  type="checkbox"
-  disabled={s.status === "invoiced"}
-  checked={selectedForInvoice.includes(s.id)}
-  onChange={() => {
-    if (s.status === "invoiced") return;
+  <div key={s.id} className="flex items-center gap-2">
+    <input
+      type="checkbox"
+      disabled={s.status === "invoiced"}
+      checked={selectedForInvoice.includes(s.id)}
+      onChange={() => {
+        if (s.status === "invoiced") return;
 
-    setSelectedForInvoice((prev) =>
-      prev.includes(s.id)
-        ? prev.filter((id) => id !== s.id)
-        : [...prev, s.id]
-    );
-  }}
-/>
+        setSelectedForInvoice((prev) =>
+          prev.includes(s.id)
+            ? prev.filter((id) => id !== s.id)
+            : [...prev, s.id]
+        );
+      }}
+    />
 
+    <input
+      className="border p-1 w-48 rounded"
+      maxLength={30}
+      placeholder="Issue"
+      value={s.issue || s.description || ""}
+      disabled={s.status === "invoiced"}
+      onChange={(e) => {
+        const updated = currentJob.services.map((item) =>
+          item.id === s.id
+            ? { ...item, issue: e.target.value }
+            : item
+        );
+        setCurrentJob({ ...currentJob, services: updated });
+      }}
+      onBlur={() => updateService(s)}
+    />
 
-          <input
-  className="border p-1 flex-1 rounded"
-  value={s.description}
-  onChange={(e) => {
-    const updated = currentJob.services.map((item) =>
-      item.id === s.id
-        ? { ...item, description: e.target.value }
-        : item
-    );
-    setCurrentJob({ ...currentJob, services: updated });
-  }}
-  onBlur={() => updateService(s)}
-  disabled={s.status === "invoiced"}
+    <input
+      className="border p-1 w-48 rounded"
+      maxLength={30}
+      placeholder="Service"
+      value={s.service || ""}
+      disabled={s.status === "invoiced"}
+      onChange={(e) => {
+        const updated = currentJob.services.map((item) =>
+          item.id === s.id
+            ? { ...item, service: e.target.value }
+            : item
+        );
+        setCurrentJob({ ...currentJob, services: updated });
+      }}
+      onBlur={() => updateService(s)}
+    />
 
-/>
+    <input
+      type="number"
+      className="border p-1 w-24 rounded"
+      value={s.cost || ""}
+      disabled={s.status === "invoiced"}
+      onChange={(e) => {
+        const updated = currentJob.services.map((item) =>
+          item.id === s.id
+            ? { ...item, cost: e.target.value }
+            : item
+        );
+        setCurrentJob({ ...currentJob, services: updated });
+      }}
+      onBlur={() => updateService(s)}
+    />
+  </div>
+))}
 
-
-          <input
-  type="number"
-  className="border p-1 w-24 rounded"
-  value={s.cost}
-  onChange={(e) => {
-    const updated = currentJob.services.map((item) =>
-      item.id === s.id
-        ? { ...item, cost: e.target.value }
-        : item
-    );
-    setCurrentJob({ ...currentJob, services: updated });
-  }}
-  onBlur={() => updateService(s)}
-  disabled={s.status === "invoiced"}
-/>
-
-        </li>
-      ))}
     </ul>
 
     <button
