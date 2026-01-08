@@ -245,6 +245,19 @@ async function updateService(service) {
     fetchCustomers();
   }, []);
 
+  useEffect(() => {
+  if (selectedVehicle && services.length > 0) {
+    setCurrentJob({
+      vehicle: selectedVehicle,
+      services,
+      date: services[0]?.created_at || new Date().toISOString(),
+    });
+  } else {
+    setCurrentJob(null);
+  }
+}, [services, selectedVehicle]);
+
+
   // GENERATE INVOICE FUNCTION
 
   async function generateInvoice() {
