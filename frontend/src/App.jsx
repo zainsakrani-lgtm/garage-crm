@@ -229,7 +229,7 @@ async function updateService(service) {
     fetchServices(selectedVehicle.id);
   };
 
-  useEffect(() => {
+ /* useEffect(() => {
     fetchCustomers();
   }, []);
 
@@ -245,7 +245,7 @@ async function updateService(service) {
   }
 }, [services, selectedVehicle]);
 
-
+*/
 
   // GENERATE INVOICE FUNCTION
 
@@ -351,27 +351,26 @@ return (
             type="button"
             className="w-full text-left p-2"
 
-            onClick={async () => {
-setSelectedVehicle(v);
+onClick={async () => {
+  setSelectedVehicle(v);
 
-const res = await fetch(`${API}/services/${v.id}`);
-const data = await res.json();
+  const res = await fetch(`${API}/services/${v.id}`);
+  const data = await res.json();
 
-setServices(data);
+  setServices(data);
 
-// Rebuild Job Card immediately
-if (data.length > 0) {
-  setCurrentJob({
-    vehicle: v,
-    services: data,
-    date: data[0]?.created_at || new Date().toISOString(),
-  });
-} else {
-  setCurrentJob(null);
-}
+  // 🔐 Build Job Card ONLY here
+  if (data.length > 0) {
+    setCurrentJob({
+      vehicle: v,
+      services: data,
+      date: data[0]?.created_at || new Date().toISOString(),
+    });
+  } else {
+    setCurrentJob(null);
+  }
 
-fetchInvoices(v.id);
-
+  fetchInvoices(v.id);
 }}
 
 
