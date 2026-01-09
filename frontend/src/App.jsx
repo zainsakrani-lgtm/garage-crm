@@ -352,25 +352,26 @@ return (
             className="w-full text-left p-2"
 
             onClick={async () => {
-  setSelectedVehicle(v);
+setSelectedVehicle(v);
 
-  const servicesRes = await fetch(`${API}/services/${v.id}`);
-  const servicesData = await servicesRes.json();
+const res = await fetch(`${API}/services/${v.id}`);
+const data = await res.json();
 
-  setServices(servicesData);
+setServices(data);
 
-  // only rebuild job here manually
-  if (servicesData.length > 0) {
-    setCurrentJob({
-      vehicle: v,
-      services: servicesData,
-      date: servicesData[0]?.created_at || new Date().toISOString(),
-    });
-  } else {
-    setCurrentJob(null);
-  }
+// Rebuild Job Card immediately
+if (data.length > 0) {
+  setCurrentJob({
+    vehicle: v,
+    services: data,
+    date: data[0]?.created_at || new Date().toISOString(),
+  });
+} else {
+  setCurrentJob(null);
+}
 
-  fetchInvoices(v.id);
+fetchInvoices(v.id);
+
 }}
 
 
