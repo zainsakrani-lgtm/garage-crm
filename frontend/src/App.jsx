@@ -103,7 +103,18 @@ const handleSearch = async (e) => {
 const fetchServices = async (vehicleId) => {
   const res = await fetch(`${API}/services/${vehicleId}`);
   const data = await res.json();
+
   setServices(data);
+
+  if (data.length > 0) {
+    setCurrentJob({
+      vehicle: selectedVehicle,
+      services: data,
+      date: data[0].created_at,
+    });
+  } else {
+    setCurrentJob(null);
+  }
 };
 
 
