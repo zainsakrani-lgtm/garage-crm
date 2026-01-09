@@ -21,42 +21,40 @@ function App() {
 
 
   // CREATE SEARCH HANDLER
-  const handleSearch = (e) => {
+const handleSearch = async (e) => {
   e.preventDefault();
 
   if (!searchTerm.trim()) return;
 
-  const term = searchTerm.toLowerCase();
+  try {
+    const res = await fetch(
+      `${API}/search?q=${encodeURIComponent(searchTerm)}`
+    );
 
-  // Find customer by name or phone
-  const customerMatch = customers.find(
-    (c) =>
-      c.name?.toLowerCase().includes(term) ||
-      c.phone?.toLowerCase().includes(term)
-  );
+    const data = await res.json();
 
-  if (customerMatch) {
-    setSelectedCustomer(customerMatch);
-    setSelectedVehicle(null);
-    fetchVehicles(customerMatch.id);
+    if (!data.customer) {
+      setSearchError("No customer or vehicle found");
+      return;
+    }
+
     setSearchError("");
-    return;
+
+    setSelectedCustomer(data.customer);
+    setSelectedVehicle(data.vehicle || null);
+
+    if (data.customer?.id) {
+      fetchVehicles(data.customer.id);
+    }
+
+    if (data.vehicle?.id) {
+      fetchServices(data.vehicle.id);
+      fetchInvoices(data.vehicle.id);
+    }
+  } catch (err) {
+    console.error("Search failed", err);
+    setSearchError("Search failed");
   }
-
-  // Find by vehicle plate
-  const vehicleMatch = vehicles.find((v) =>
-    v.plate_number?.toLowerCase().includes(term)
-  );
-
-  if (vehicleMatch) {
-    setSelectedVehicle(vehicleMatch);
-    fetchServices(vehicleMatch.id);
-    fetchInvoices(vehicleMatch.id);
-    setSearchError("");
-    return;
-  }
-
-  setSearchError("No customer or vehicle found");
 };
 
 
@@ -350,8 +348,7 @@ return (
           <button
             type="button"
             className="w-full text-left p-2"
-
-onClick={async () => {
+            onClick={async () => {
   setSelectedVehicle(v);
 
   const res = await fetch(`${API}/services/${v.id}`);

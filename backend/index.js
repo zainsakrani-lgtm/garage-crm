@@ -12,6 +12,57 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+
+/* --------------------
+   SEARCH FIELD
+-------------------- */
+
+app.get("/search", async (req, res) => {
+  const term = req.query.q?.toLowerCase();
+  if (!term) return res.json({});
+
+  // Search customers
+  const { data: customers } = await supabase
+    .from("customers")
+    .select("*");
+
+  const customer = customers?.find(
+    (c) =>
+      c.name?.toLowerCase().includes(term) ||
+      c.phone?.toLowerCase().includes(term)
+  );
+
+  if (customer) {
+    const { data: vehicles } = await supabase
+      .from("vehicles")
+      .select("*")
+      .eq("customer_id", customer.id);
+
+    return res.json({ customer, vehicles });
+  }
+
+  // Search by plate
+  const { data: vehicle } = await supabase
+    .from("vehicles")
+    .select("*")
+    .ilike("plate_number", `%${term}%`)
+    .single();
+
+  if (vehicle) {
+    const { data: customer } = await supabase
+      .from("customers")
+      .select("*")
+      .eq("id", vehicle.customer_id)
+      .single();
+
+    return res.json({ customer, vehicles: [vehicle] });
+  }
+
+  res.json({});
+});
+
+
+
 /* --------------------
    BASIC TEST ROUTE
 -------------------- */
