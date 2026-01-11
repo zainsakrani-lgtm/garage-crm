@@ -157,16 +157,18 @@ app.get("/services/:vehicleId", async (req, res) => {
 
   const { data, error } = await supabase
     .from("services")
-    .select("id, issue, service, cost, status, created_at")
+    .select("*")
     .eq("vehicle_id", vehicleId)
-    .order("service_date", { ascending: false });
+    .order("created_at", { ascending: false });
 
   if (error) {
-    return res.status(500).json({ error: error.message });
+    console.error("Service fetch error:", error);
+    return res.status(500).json([]);
   }
 
-  res.json(data);
+  res.json(data || []);
 });
+
 
 // Add service
 app.post("/services", async (req, res) => {
