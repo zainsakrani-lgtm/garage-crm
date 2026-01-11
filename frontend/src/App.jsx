@@ -100,7 +100,7 @@ const handleSearch = async (e) => {
     setServices([]);
   };
 
-const fetchServices = async (vehicleId) => {
+const fetchServices = async (vehicleId, vehicleObj) => {
   const res = await fetch(`${API}/services/${vehicleId}`);
   const data = await res.json();
 
@@ -108,14 +108,15 @@ const fetchServices = async (vehicleId) => {
 
   if (data.length > 0) {
     setCurrentJob({
-      vehicle: selectedVehicle,
+      vehicle: vehicleObj, // ✅ USE THE ACTUAL VEHICLE OBJECT
       services: data,
-      date: data[0].created_at,
+      date: data[0]?.created_at || new Date().toISOString(),
     });
   } else {
     setCurrentJob(null);
   }
 };
+
 
 
   // FETCH INVOICES FROM BACKEND
@@ -361,27 +362,9 @@ return (
             className="w-full text-left p-2"
             onClick={async () => {
   setSelectedVehicle(v);
-
-  const res = await fetch(`${API}/services/${v.id}`);
-  const data = await res.json();
-
-  setServices(data);
-
-  // 🔐 Build Job Card ONLY here
-  if (data.length > 0) {
-    setCurrentJob({
-      vehicle: v,
-      services: data,
-      date: data[0]?.created_at || new Date().toISOString(),
-    });
-  } else {
-    setCurrentJob(null);
-  }
-
+  await fetchServices(v.id, v);   // ✅ pass vehicle object
   fetchInvoices(v.id);
 }}
-
-
 
             
           >
