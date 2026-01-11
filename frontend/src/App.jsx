@@ -106,7 +106,7 @@ const fetchServices = async (vehicleId, vehicleObj) => {
 
   setServices(data);
 
-  if (data.length > 0) {
+  /*if (data.length > 0) {
     setCurrentJob({
       vehicle: vehicleObj, // ✅ USE THE ACTUAL VEHICLE OBJECT
       services: data,
@@ -114,7 +114,7 @@ const fetchServices = async (vehicleId, vehicleObj) => {
     });
   } else {
     setCurrentJob(null);
-  }
+  }*/
 };
 
 
@@ -360,11 +360,30 @@ return (
           <button
             type="button"
             className="w-full text-left p-2"
+
             onClick={async () => {
+  setSelectedVehicle(v);
+
+  const res = await fetch(`${API}/services/${v.id}`);
+  const data = await res.json();
+
+  setServices(data);
+
+  // 🔥 Always create job card
+  setCurrentJob({
+    vehicle: v,
+    services: data,
+    date: data[0]?.created_at || new Date().toISOString(),
+  });
+
+  fetchInvoices(v.id);
+}}
+
+            /*onClick={async () => {
   setSelectedVehicle(v);
   await fetchServices(v.id, v);   // ✅ pass vehicle object
   fetchInvoices(v.id);
-}}
+}}*/
 
             
           >
@@ -459,7 +478,7 @@ return (
 
 {/* Job card summary - yellow box */}
 
-{currentJob && (
+{selectedVehicle && currentJob && (
   <div className="bg-yellow-50 border border-yellow-300 p-4 rounded mb-4">
     <h3 className="font-semibold mb-1 flex justify-between items-center">
   <span>🧾 Current Job Card</span>
