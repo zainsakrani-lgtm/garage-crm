@@ -100,21 +100,34 @@ const handleSearch = async (e) => {
     setServices([]);
   };
 
-const fetchServices = async (vehicleId, vehicleObj) => {
-  const res = await fetch(`${API}/services/${vehicleId}`);
-  const data = await res.json();
+const fetchServices = async (vehicleId) => {
+  try {
+    const res = await fetch(`${API}/services/${vehicleId}`);
+    const data = await res.json();
 
-  setServices(data);
+    if (!Array.isArray(data)) {
+      console.error("Invalid services response:", data);
+      setServices([]);
+      setCurrentJob(null);
+      return;
+    }
 
-  /*if (data.length > 0) {
-    setCurrentJob({
-      vehicle: vehicleObj, // ✅ USE THE ACTUAL VEHICLE OBJECT
-      services: data,
-      date: data[0]?.created_at || new Date().toISOString(),
-    });
-  } else {
+    setServices(data);
+
+    if (data.length > 0) {
+      setCurrentJob({
+        vehicle: selectedVehicle,
+        services: data,
+        date: data[0]?.created_at || new Date().toISOString(),
+      });
+    } else {
+      setCurrentJob(null);
+    }
+  } catch (err) {
+    console.error("fetchServices failed:", err);
+    setServices([]);
     setCurrentJob(null);
-  }*/
+  }
 };
 
 
