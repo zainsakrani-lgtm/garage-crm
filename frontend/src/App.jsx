@@ -358,7 +358,7 @@ return (
   ➕ Create New Client
 </button>
 
-{/* EDIT CUSTOMER */}
+{/* EDIT CUSTOMER 
 <button
   onClick={() => {
     setNewCustomer(selectedCustomer);
@@ -368,6 +368,8 @@ return (
 >
   ✏️ Edit Client
 </button>
+*/}
+
 
 {/* ADD NEW CLIENT FORM */}
 
