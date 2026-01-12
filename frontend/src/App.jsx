@@ -4,6 +4,18 @@ const API = "https://garage-crm-backend.onrender.com";
 
 function App() {
 
+
+// Add new customer state 
+
+const [showNewClient, setShowNewClient] = useState(false);
+const [newClient, setNewClient] = useState({
+  name: "",
+  phone: "",
+  email: "",
+  address: "",
+});
+
+
 // Selected for invoice
   const [selectedForInvoice, setSelectedForInvoice] = useState([]);
 
@@ -298,7 +310,83 @@ return (
     <div className="max-w-5xl mx-auto bg-white rounded-xl shadow p-6">
       <h1 className="text-3xl font-bold mb-6 text-center">🚗 Garage CRM</h1>
 
-      
+{/* ADD NEW CLIENT BUTTON */}
+
+<button
+  onClick={() => setShowNewClient(!showNewClient)}
+  className="w-full max-w-2xl mx-auto block mb-6 bg-blue-600 text-white py-3 rounded hover:bg-blue-700"
+>
+  ➕ Create New Client
+</button>
+
+
+{showNewClient && (
+  <div className="max-w-2xl mx-auto bg-gray-50 p-6 rounded-lg shadow mb-8">
+    <h2 className="text-lg font-semibold mb-4">New Client</h2>
+
+    <div className="grid grid-cols-2 gap-4">
+      <input
+        className="border p-2 rounded"
+        placeholder="Full name"
+        value={newClient.name}
+        onChange={(e) => setNewClient({ ...newClient, name: e.target.value })}
+      />
+
+      <input
+        className="border p-2 rounded"
+        placeholder="Phone"
+        value={newClient.phone}
+        onChange={(e) => setNewClient({ ...newClient, phone: e.target.value })}
+      />
+
+      <input
+        className="border p-2 rounded col-span-2"
+        placeholder="Email"
+        value={newClient.email}
+        onChange={(e) => setNewClient({ ...newClient, email: e.target.value })}
+      />
+
+      <input
+        className="border p-2 rounded col-span-2"
+        placeholder="Address"
+        value={newClient.address}
+        onChange={(e) => setNewClient({ ...newClient, address: e.target.value })}
+      />
+    </div>
+
+    <div className="flex gap-3 mt-4">
+      <button
+        className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
+        onClick={async () => {
+          const res = await fetch(`${API}/customers`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(newClient),
+          });
+
+          const created = await res.json();
+
+          setShowNewClient(false);
+          setNewClient({ name: "", phone: "", email: "", address: "" });
+
+          fetchCustomers();
+          setSelectedCustomer(created);
+        }}
+      >
+        Save Client
+      </button>
+
+      <button
+        className="bg-gray-300 px-4 py-2 rounded"
+        onClick={() => setShowNewClient(false)}
+      >
+        Cancel
+      </button>
+    </div>
+  </div>
+)}
+
+
       
       {/* SEARCH BAR */}
 <form
