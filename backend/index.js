@@ -89,23 +89,23 @@ app.get("/customers", async (req, res) => {
 
 // Add customer
 app.post("/customers", async (req, res) => {
-  const { name, phone, email } = req.body;
+  const { name, phone, email, address } = req.body;
 
-  if (!name) {
-    return res.status(400).json({ error: "Name is required" });
+  if (!name || !phone) {
+    return res.status(400).json({ error: "Name and phone are required" });
   }
 
   const { data, error } = await supabase
     .from("customers")
-    .insert([{ name, phone, email }])
-    .select();
+    .insert([{ name, phone, email, address }])
+    .select()
+    .single();
 
-  if (error) {
-    return res.status(500).json({ error: error.message });
-  }
+  if (error) return res.status(500).json({ error: error.message });
 
-  res.status(201).json(data[0]);
+  res.status(201).json(data);
 });
+
 
 /* --------------------
    VEHICLES
