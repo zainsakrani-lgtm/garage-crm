@@ -194,6 +194,56 @@ const fetchServices = async (vehicleId) => {
     fetchVehicles(selectedCustomer.id);
   };
 
+
+  async function createCustomer() {
+  if (!newCustomer.name.trim()) return;
+
+  const res = await fetch(`${API}/customers`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      name: newCustomer.name,
+      phone: newCustomer.phone,
+      email: newCustomer.email,
+      address: newCustomer.address,
+    }),
+  });
+
+  const saved = await res.json();
+
+  setCustomers((prev) => [saved, ...prev]);
+  setSelectedCustomer(saved);
+  setShowCreateCustomer(false);
+
+  setNewCustomer({ name: "", phone: "", email: "", address: "" });
+}
+
+// CREATE CUSTOMER
+async function createCustomer() {
+  if (!newCustomer.name.trim()) return;
+
+  const res = await fetch(`${API}/customers`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      name: newCustomer.name,
+      phone: newCustomer.phone,
+      email: newCustomer.email,
+      address: newCustomer.address,
+    }),
+  });
+
+  const saved = await res.json();
+
+  setCustomers((prev) => [saved, ...prev]);
+  setSelectedCustomer(saved);
+  setShowCreateCustomer(false);
+
+  setNewCustomer({ name: "", phone: "", email: "", address: "" });
+}
+
+
+
 // ADD JOB CARD
 async function saveJobCard() {
   const savedServices = [];
