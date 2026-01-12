@@ -195,52 +195,41 @@ const fetchServices = async (vehicleId) => {
   };
 
 
+  // CREATE CUSTOMER
   async function createCustomer() {
   if (!newCustomer.name.trim()) return;
 
-  const res = await fetch(`${API}/customers`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      name: newCustomer.name,
-      phone: newCustomer.phone,
-      email: newCustomer.email,
-      address: newCustomer.address,
-    }),
-  });
+  const isEdit = Boolean(newCustomer.id);
+
+  const res = await fetch(
+    `${API}/customers${isEdit ? `/${newCustomer.id}` : ""}`,
+    {
+      method: isEdit ? "PUT" : "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(newCustomer),
+    }
+  );
+
+  if (res.status === 409) {
+    const msg = await res.json();
+    alert(msg.error);
+    return;
+  }
 
   const saved = await res.json();
 
-  setCustomers((prev) => [saved, ...prev]);
+  setCustomers((prev) =>
+    isEdit
+      ? prev.map((c) => (c.id === saved.id ? saved : c))
+      : [saved, ...prev]
+  );
+
   setSelectedCustomer(saved);
   setShowCreateCustomer(false);
 
   setNewCustomer({ name: "", phone: "", email: "", address: "" });
 }
 
-// CREATE CUSTOMER
-async function createCustomer() {
-  if (!newCustomer.name.trim()) return;
-
-  const res = await fetch(`${API}/customers`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      name: newCustomer.name,
-      phone: newCustomer.phone,
-      email: newCustomer.email,
-      address: newCustomer.address,
-    }),
-  });
-
-  const saved = await res.json();
-
-  setCustomers((prev) => [saved, ...prev]);
-  setSelectedCustomer(saved);
-  setShowCreateCustomer(false);
-
-  setNewCustomer({ name: "", phone: "", email: "", address: "" });
-}
 
 
 
@@ -369,6 +358,18 @@ return (
   ➕ Create New Client
 </button>
 
+{/* EDIT CUSTOMER */}
+<button
+  onClick={() => {
+    setNewCustomer(selectedCustomer);
+    setShowCreateCustomer(true);
+  }}
+  className="bg-yellow-500 text-white px-4 py-2 rounded mt-2"
+>
+  ✏️ Edit Client
+</button>
+
+{/* ADD NEW CLIENT FORM */}
 
 {showNewClient && (
   <div className="max-w-2xl mx-auto bg-gray-50 p-6 rounded-lg shadow mb-8">
