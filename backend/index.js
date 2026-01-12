@@ -96,19 +96,50 @@ app.post("/customers", async (req, res) => {
     return res.status(400).json({ error: "Name is required" });
   }
 
+  // 🔒 Check duplicates
+  const { data: existing } = await supabase
+    .from("customers")
+    .select("id")
+    .or(`phone.eq.${phone},email.eq.${email}`)
+    .limit(1);
+
+  if (existing && existing.length > 0) {
+    return res.status(409).json({
+      error: "A customer with this phone or email already exists",
+    });
+  }
+
   const { data, error } = await supabase
     .from("customers")
     .insert([{ name, phone, email, address }])
     .select()
     .single();
 
-  if (error) {
-    console.error("Create customer error:", error);
-    return res.status(500).json({ error: error.message });
-  }
+  if (error) return res.status(500).json({ error: error.message });
 
   res.status(201).json(data);
 });
+
+
+// EDIT CUSTOMER PROFILE
+
+app.put("/customers/:id", async (req, res) => {
+  const { id } = req.params;
+  const { name, phone, email, address } = req.body;
+
+  const { data, error } = await supabase
+    .from("customers")
+    .update({ name, phone, email, address })
+    .eq("id", id)
+    .select()
+    .single();
+
+  if (error) return res.status(500).json({ error: error.message });
+
+  res.json(data);
+});
+
+
 
 
 
