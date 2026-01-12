@@ -87,12 +87,13 @@ app.get("/customers", async (req, res) => {
   res.json(data);
 });
 
-// Add customer
+
+// CREATE CUSTOMER
 app.post("/customers", async (req, res) => {
   const { name, phone, email, address } = req.body;
 
-  if (!name || !phone) {
-    return res.status(400).json({ error: "Name and phone are required" });
+  if (!name) {
+    return res.status(400).json({ error: "Name is required" });
   }
 
   const { data, error } = await supabase
@@ -101,10 +102,14 @@ app.post("/customers", async (req, res) => {
     .select()
     .single();
 
-  if (error) return res.status(500).json({ error: error.message });
+  if (error) {
+    console.error("Create customer error:", error);
+    return res.status(500).json({ error: error.message });
+  }
 
   res.status(201).json(data);
 });
+
 
 
 /* --------------------
