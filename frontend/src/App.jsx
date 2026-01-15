@@ -4,6 +4,9 @@ const API = "https://garage-crm-backend.onrender.com";
 
 function App() {
 
+// Navigation STate
+  const [activePage, setActivePage] = useState("workspace");
+
 
 // Add new customer state 
 
@@ -349,6 +352,38 @@ return (
     <div className="max-w-5xl mx-auto bg-white rounded-xl shadow p-6">
       <h1 className="text-3xl font-bold mb-6 text-center">🚗 Garage CRM</h1>
 
+  {/* TOP NAV BAR */}
+<div className="flex gap-6 border-b pb-3 mb-6">
+  <button
+    onClick={() => setActivePage("workspace")}
+    className={`font-semibold ${
+      activePage === "workspace" ? "text-blue-600" : "text-gray-500"
+    }`}
+  >
+    Workspace
+  </button>
+
+  <button
+    onClick={() => setActivePage("customers")}
+    className={`font-semibold ${
+      activePage === "customers" ? "text-blue-600" : "text-gray-500"
+    }`}
+  >
+    Customers
+  </button>
+
+  <button
+    onClick={() => setActivePage("finance")}
+    className={`font-semibold ${
+      activePage === "finance" ? "text-blue-600" : "text-gray-500"
+    }`}
+  >
+    Finance
+  </button>
+</div>
+
+
+
 {/* ADD NEW CLIENT BUTTON */}
 
 <button
@@ -440,7 +475,10 @@ return (
 )}
 
 
-      
+{/* STARTING OF THE PAGE WORKSPACE */}
+{activePage === "workspace" && (
+  <>
+
       {/* SEARCH BAR */}
 <form
   onSubmit={handleSearch}
@@ -819,11 +857,76 @@ return (
   </div>
 )}
 
+  </>
+)}
+
+{/* END OF WORKSPACE PAGE */}
+
+
+{/* STARTING OF CUSTOMERS PAGE */}
+{activePage === "customers" && (
+  <div>
+    <h2 className="text-2xl font-semibold mb-4">Customers</h2>
+
+    <ul className="space-y-2">
+      {customers.map((c) => (
+        <li
+          key={c.id}
+          className="p-3 border rounded hover:bg-gray-50"
+        >
+          <div className="font-semibold">{c.name}</div>
+          <div className="text-sm text-gray-600">{c.phone}</div>
+        </li>
+      ))}
+    </ul>
+  </div>
+)}
+{/* END OF CUSTOMERS PAGE */}
+
+
+{/* START OF FINANCE PAGE */}
+{activePage === "finance" && (
+  <div>
+    <h2 className="text-2xl font-semibold mb-4">Finance</h2>
+
+    <ul className="space-y-2">
+      {invoices.map((inv) => (
+        <li
+          key={inv.id}
+          className="p-3 border rounded flex justify-between"
+        >
+          <div>
+            <div className="font-semibold">Invoice #{inv.id.slice(0,6)}</div>
+            <div className="text-sm text-gray-600">
+              {inv.status} — ${inv.total_amount}
+            </div>
+          </div>
+
+          <a
+            href={`${API}/invoices/${inv.id}/pdf`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-blue-600"
+          >
+            PDF
+          </a>
+        </li>
+      ))}
+    </ul>
+  </div>
+)}
+
+{/* END OF FINANCE PAGE */}
+
     </div>
   </div>
+
+  
 );
 
 }
+
+
 
 export default App;
 
