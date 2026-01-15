@@ -352,7 +352,7 @@ return (
     <div className="max-w-5xl mx-auto bg-white rounded-xl shadow p-6">
       <h1 className="text-3xl font-bold mb-6 text-center">🚗 Garage CRM</h1>
 
-  {/* TOP NAV BAR */}
+  {/* START TOP NAV BAR */}
 <div className="flex gap-6 border-b pb-3 mb-6">
   <button
     onClick={() => setActivePage("workspace")}
@@ -382,9 +382,17 @@ return (
   </button>
 </div>
 
+{/* END TOP NAV BAR */}
 
 
-{/* ADD NEW CLIENT BUTTON */}
+
+
+{/* STARTING OF THE PAGE WORKSPACE */}
+{activePage === "workspace" && (
+  <>
+
+
+  {/* START - ADD NEW CLIENT BUTTON */}
 
 <button
   onClick={() => setShowNewClient(!showNewClient)}
@@ -405,8 +413,9 @@ return (
 </button>
 */}
 
+{/* END - ADD NEW CLIENT BUTTON */}
 
-{/* ADD NEW CLIENT FORM */}
+{/* START - ADD NEW CLIENT FORM */}
 
 {showNewClient && (
   <div className="max-w-2xl mx-auto bg-gray-50 p-6 rounded-lg shadow mb-8">
@@ -474,10 +483,7 @@ return (
   </div>
 )}
 
-
-{/* STARTING OF THE PAGE WORKSPACE */}
-{activePage === "workspace" && (
-  <>
+{/* END - ADD NEW CLIENT FORM */}
 
       {/* SEARCH BAR */}
 <form
