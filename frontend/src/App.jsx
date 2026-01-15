@@ -352,37 +352,45 @@ return (
     <div className="max-w-5xl mx-auto bg-white rounded-xl shadow p-6">
       <h1 className="text-3xl font-bold mb-6 text-center">🚗 Garage CRM</h1>
 
-  {/* START TOP NAV BAR */}
-<div className="flex gap-6 border-b pb-3 mb-6">
+{/* START TOP NAV BAR */}
+<div className="flex justify-center gap-10 border-b pb-3 mb-6">
+
   <button
     onClick={() => setActivePage("workspace")}
-    className={`font-semibold ${
-      activePage === "workspace" ? "text-blue-600" : "text-gray-500"
+    className={`flex items-center gap-2 font-semibold transition ${
+      activePage === "workspace"
+        ? "text-blue-600 border-b-2 border-blue-600 pb-2"
+        : "text-gray-500 hover:text-blue-500"
     }`}
   >
-    Workspace
+    🏠 <span>Workspace</span>
   </button>
 
   <button
     onClick={() => setActivePage("customers")}
-    className={`font-semibold ${
-      activePage === "customers" ? "text-blue-600" : "text-gray-500"
+    className={`flex items-center gap-2 font-semibold transition ${
+      activePage === "customers"
+        ? "text-blue-600 border-b-2 border-blue-600 pb-2"
+        : "text-gray-500 hover:text-blue-500"
     }`}
   >
-    Customers
+    👥 <span>Customers</span>
   </button>
 
   <button
     onClick={() => setActivePage("finance")}
-    className={`font-semibold ${
-      activePage === "finance" ? "text-blue-600" : "text-gray-500"
+    className={`flex items-center gap-2 font-semibold transition ${
+      activePage === "finance"
+        ? "text-blue-600 border-b-2 border-blue-600 pb-2"
+        : "text-gray-500 hover:text-blue-500"
     }`}
   >
-    Finance
+    💰 <span>Finance</span>
   </button>
-</div>
 
+</div>
 {/* END TOP NAV BAR */}
+
 
 
 
