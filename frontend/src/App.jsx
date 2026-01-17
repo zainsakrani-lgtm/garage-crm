@@ -567,6 +567,8 @@ return (
       {/* ======================
     START OF EDIT CUSTOMER (SLIDE DOWN)
 ====================== */}
+
+{/*
 {editingCustomer && (
   <div className="mt-6 border rounded-lg bg-gray-50 p-4 animate-slideDown">
     <h3 className="text-lg font-semibold mb-4">
@@ -665,12 +667,16 @@ return (
     </div>
   </div>
 )}
+  */}
+
+  {/* END OF EDIT CUSTOMER (SLIDE DOWN) */}
 
     </div>
   </div>
 )}
 
-{/* END OF EDIT CUSTOMER (SLIDE DOWN) */}
+
+
 
 
 {/* END OF THE PAGE CUSTOMER */}
