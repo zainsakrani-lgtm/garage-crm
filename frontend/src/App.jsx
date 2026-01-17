@@ -4,7 +4,12 @@ const API = "https://garage-crm-backend.onrender.com";
 
 function App() {
 
-// Navigation STate
+
+// EDITING CUSTOMER STATE
+  const [editingCustomer, setEditingCustomer] = useState(null);
+
+
+// Navigation State
   const [activePage, setActivePage] = useState("workspace");
 
 
@@ -428,10 +433,12 @@ return (
             </tr>
           ) : (
             customers.map((c) => (
-              <tr
-                key={c.id}
-                className="border-t hover:bg-gray-50 cursor-pointer"
-              >
+            <tr
+  key={c.id}
+  className="border-t hover:bg-blue-50 cursor-pointer"
+  onClick={() => setEditingCustomer(c)}
+>
+
                 <td className="p-3 font-medium">{c.name}</td>
                 <td className="p-3">{c.phone || "-"}</td>
                 <td className="p-3">{c.email || "-"}</td>
@@ -444,9 +451,108 @@ return (
           )}
         </tbody>
       </table>
+
+      {/* ======================
+    START OF EDIT CUSTOMER (SLIDE DOWN)
+====================== */}
+{editingCustomer && (
+  <div className="mt-6 border rounded-lg bg-gray-50 p-4 animate-slideDown">
+    <h3 className="text-lg font-semibold mb-4">
+      ✏️ Edit Customer
+    </h3>
+
+    <div className="grid grid-cols-2 gap-3">
+      <input
+        className="border p-2 rounded"
+        placeholder="Name"
+        value={editingCustomer.name}
+        onChange={(e) =>
+          setEditingCustomer({
+            ...editingCustomer,
+            name: e.target.value,
+          })
+        }
+      />
+
+      <input
+        className="border p-2 rounded"
+        placeholder="Phone"
+        value={editingCustomer.phone || ""}
+        onChange={(e) =>
+          setEditingCustomer({
+            ...editingCustomer,
+            phone: e.target.value,
+          })
+        }
+      />
+
+      <input
+        className="border p-2 rounded"
+        placeholder="Email"
+        value={editingCustomer.email || ""}
+        onChange={(e) =>
+          setEditingCustomer({
+            ...editingCustomer,
+            email: e.target.value,
+          })
+        }
+      />
+
+      <input
+        className="border p-2 rounded"
+        placeholder="Address"
+        value={editingCustomer.address || ""}
+        onChange={(e) =>
+          setEditingCustomer({
+            ...editingCustomer,
+            address: e.target.value,
+          })
+        }
+      />
+    </div>
+
+    <div className="mt-4 flex gap-3">
+      <button
+        className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+        onClick={async () => {
+          const res = await fetch(
+            `${API}/customers/${editingCustomer.id}`,
+            {
+              method: "PUT",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(editingCustomer),
+            }
+          );
+
+          const updated = await res.json();
+
+          setCustomers((prev) =>
+            prev.map((c) =>
+              c.id === updated.id ? updated : c
+            )
+          );
+
+          setEditingCustomer(null);
+        }}
+      >
+        Save Changes
+      </button>
+
+      <button
+        className="bg-gray-300 px-4 py-2 rounded"
+        onClick={() => setEditingCustomer(null)}
+      >
+        Cancel
+      </button>
     </div>
   </div>
 )}
+
+    </div>
+  </div>
+)}
+
+{/* END OF EDIT CUSTOMER (SLIDE DOWN) */}
 
 {/* END OF THE PAGE CUSTOMER */}
 
