@@ -1039,6 +1039,7 @@ return (
 
 
 {/* STARTING OF CUSTOMERS PAGE */}
+{/*
 {activePage === "customers" && (
   <div>
     <h2 className="text-2xl font-semibold mb-4">Customers</h2>
@@ -1056,6 +1057,8 @@ return (
     </ul>
   </div>
 )}
+
+*/}
 {/* END OF CUSTOMERS PAGE */}
 
 
