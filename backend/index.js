@@ -122,7 +122,7 @@ app.post("/customers", async (req, res) => {
 
 
 // EDIT CUSTOMER PROFILE
-
+/*
 app.put("/customers/:id", async (req, res) => {
   const { id } = req.params;
   const { name, phone, email, address } = req.body;
@@ -138,6 +138,31 @@ app.put("/customers/:id", async (req, res) => {
 
   res.json(data);
 });
+*/
+
+// UPDATE CUSTOMER IN THE CUSTOMERS WINDOW
+app.put("/customers/:id", async (req, res) => {
+  const { id } = req.params;
+  const { name, phone, email, address } = req.body;
+
+  if (!name) {
+    return res.status(400).json({ error: "Name is required" });
+  }
+
+  const { data, error } = await supabase
+    .from("customers")
+    .update({ name, phone, email, address })
+    .eq("id", id)
+    .select()
+    .single();
+
+  if (error) {
+    return res.status(500).json({ error: error.message });
+  }
+
+  res.json(data);
+});
+
 
 
 
