@@ -324,6 +324,14 @@ async function updateService(service) {
 
 */
 
+{/* START USE EFFECT TO FETCH CUSTOMERS */}
+useEffect(() => {
+  if (activePage === "customers") {
+    fetchCustomers();
+  }
+}, [activePage]);
+
+
   // GENERATE INVOICE FUNCTION
 
   async function generateInvoice() {
@@ -391,9 +399,56 @@ return (
 </div>
 {/* END TOP NAV BAR */}
 
+{/* START OF THE PAGE CUSTOMER */}
+{/* ======================
+    CUSTOMERS PAGE
+====================== */}
+{activePage === "customers" && (
+  <div className="mt-6">
+    <h2 className="text-2xl font-bold mb-4">👥 Customers</h2>
 
+    <div className="overflow-x-auto">
+      <table className="w-full border border-gray-200 rounded-lg">
+        <thead className="bg-gray-100">
+          <tr>
+            <th className="p-3 text-left">Name</th>
+            <th className="p-3 text-left">Phone</th>
+            <th className="p-3 text-left">Email</th>
+            <th className="p-3 text-left">Address</th>
+            <th className="p-3 text-left">Created</th>
+          </tr>
+        </thead>
 
+        <tbody>
+          {customers.length === 0 ? (
+            <tr>
+              <td colSpan="5" className="p-4 text-center text-gray-500">
+                No customers found
+              </td>
+            </tr>
+          ) : (
+            customers.map((c) => (
+              <tr
+                key={c.id}
+                className="border-t hover:bg-gray-50 cursor-pointer"
+              >
+                <td className="p-3 font-medium">{c.name}</td>
+                <td className="p-3">{c.phone || "-"}</td>
+                <td className="p-3">{c.email || "-"}</td>
+                <td className="p-3">{c.address || "-"}</td>
+                <td className="p-3 text-sm text-gray-500">
+                  {new Date(c.created_at).toLocaleDateString()}
+                </td>
+              </tr>
+            ))
+          )}
+        </tbody>
+      </table>
+    </div>
+  </div>
+)}
 
+{/* END OF THE PAGE CUSTOMER */}
 
 {/* STARTING OF THE PAGE WORKSPACE */}
 {activePage === "workspace" && (
