@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Fragment, useState } from "react";
 
 const API = "https://garage-crm-backend.onrender.com";
 
@@ -6,7 +7,9 @@ function App() {
 
 
 // EDITING CUSTOMER STATE
+  const [editingCustomerId, setEditingCustomerId] = useState(null);
   const [editingCustomer, setEditingCustomer] = useState(null);
+
 
 
 // Navigation State
@@ -239,6 +242,27 @@ const fetchServices = async (vehicleId) => {
 }
 
 
+// EDIT CUSTOMER
+
+async function updateCustomer(customer) {
+  await fetch(`${API}/customers/${customer.id}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      name: customer.name,
+      phone: customer.phone,
+      email: customer.email,
+      address: customer.address,
+    }),
+  });
+
+  // Refresh table
+  fetchCustomers();
+
+  // Close inline editor
+  setEditingCustomerId(null);
+  setEditingCustomer(null);
+}
 
 
 // ADD JOB CARD
@@ -425,33 +449,121 @@ return (
         </thead>
 
         <tbody>
-          {customers.length === 0 ? (
-            <tr>
-              <td colSpan="5" className="p-4 text-center text-gray-500">
-                No customers found
-              </td>
-            </tr>
-          ) : (
-            customers.map((c) => (
-            <tr
-  key={c.id}
-  className="border-t hover:bg-blue-50 cursor-pointer"
-  onClick={() => setEditingCustomer(c)}
->
+  {customers.length === 0 ? (
+    <tr>
+      <td colSpan="5" className="p-4 text-center text-gray-500">
+        No customers found
+      </td>
+    </tr>
+  ) : (
+    customers.map((c) => (
+      <Fragment key={c.id}>
+        {/* MAIN CUSTOMER ROW */}
+        <tr
+          className="border-t hover:bg-blue-50 cursor-pointer"
+          onClick={() => {
+            setEditingCustomerId(c.id);
+            setEditingCustomer({ ...c });
+          }}
+        >
+          <td className="p-3 font-medium">{c.name}</td>
+          <td className="p-3">{c.phone || "-"}</td>
+          <td className="p-3">{c.email || "-"}</td>
+          <td className="p-3">{c.address || "-"}</td>
+          <td className="p-3 text-sm text-gray-500">
+            {new Date(c.created_at).toLocaleDateString()}
+          </td>
+        </tr>
 
-                <td className="p-3 font-medium">{c.name}</td>
-                <td className="p-3">{c.phone || "-"}</td>
-                <td className="p-3">{c.email || "-"}</td>
-                <td className="p-3">{c.address || "-"}</td>
-                <td className="p-3 text-sm text-gray-500">
-                  {new Date(c.created_at).toLocaleDateString()}
-                </td>
-              </tr>
-            ))
-          )}
-        </tbody>
+        {/* INLINE EDIT ROW */}
+        {editingCustomerId === c.id && (
+          <tr>
+            <td colSpan={5} className="bg-gray-50 p-4">
+              <div className="border rounded-lg p-4">
+                <h3 className="font-semibold mb-3 flex items-center gap-2">
+                  ✏️ Edit Customer
+                </h3>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <input
+                    className="border p-2 rounded"
+                    placeholder="Name"
+                    value={editingCustomer.name}
+                    onChange={(e) =>
+                      setEditingCustomer({
+                        ...editingCustomer,
+                        name: e.target.value,
+                      })
+                    }
+                  />
+
+                  <input
+                    className="border p-2 rounded"
+                    placeholder="Phone"
+                    value={editingCustomer.phone || ""}
+                    onChange={(e) =>
+                      setEditingCustomer({
+                        ...editingCustomer,
+                        phone: e.target.value,
+                      })
+                    }
+                  />
+
+                  <input
+                    className="border p-2 rounded col-span-2"
+                    placeholder="Email"
+                    value={editingCustomer.email || ""}
+                    onChange={(e) =>
+                      setEditingCustomer({
+                        ...editingCustomer,
+                        email: e.target.value,
+                      })
+                    }
+                  />
+
+                  <input
+                    className="border p-2 rounded col-span-2"
+                    placeholder="Address"
+                    value={editingCustomer.address || ""}
+                    onChange={(e) =>
+                      setEditingCustomer({
+                        ...editingCustomer,
+                        address: e.target.value,
+                      })
+                    }
+                  />
+                </div>
+
+                <div className="flex gap-3 mt-4">
+                  <button
+                    className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+                    onClick={() => updateCustomer(editingCustomer)}
+                  >
+                    Save Changes
+                  </button>
+
+                  <button
+                    className="bg-gray-300 px-4 py-2 rounded hover:bg-gray-400"
+                    onClick={() => {
+                      setEditingCustomerId(null);
+                      setEditingCustomer(null);
+                    }}
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            </td>
+          </tr>
+        )}
+      </Fragment>
+    ))
+  )}
+</tbody>
+
+
+
       </table>
-
       {/* ======================
     START OF EDIT CUSTOMER (SLIDE DOWN)
 ====================== */}
@@ -520,7 +632,13 @@ return (
             {
               method: "PUT",
               headers: { "Content-Type": "application/json" },
-              body: JSON.stringify(editingCustomer),
+              body: JSON.stringify({
+  name: editingCustomer.name,
+  phone: editingCustomer.phone,
+  email: editingCustomer.email,
+  address: editingCustomer.address,
+}),
+
             }
           );
 
@@ -553,6 +671,7 @@ return (
 )}
 
 {/* END OF EDIT CUSTOMER (SLIDE DOWN) */}
+
 
 {/* END OF THE PAGE CUSTOMER */}
 
