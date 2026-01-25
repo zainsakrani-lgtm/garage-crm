@@ -1024,22 +1024,46 @@ return (
       onBlur={() => updateService(s)}
     />
 
-    <input
-      className="border p-1 w-48 rounded"
-      maxLength={30}
-      placeholder="Service"
-      value={s.service || ""}
-      disabled={s.status === "invoiced"}
-      onChange={(e) => {
-        const updated = currentJob.services.map((item) =>
-          item.id === s.id
-            ? { ...item, service: e.target.value }
-            : item
-        );
-        setCurrentJob({ ...currentJob, services: updated });
-      }}
-      onBlur={() => updateService(s)}
-    />
+  <input
+  className="border p-1 w-48 rounded"
+  placeholder="Service"
+  value={s.service || ""}
+  maxLength={50}                     // ✅ hard limit (UI)
+  disabled={s.status === "invoiced"}
+  onChange={(e) => {
+    const updated = currentJob.services.map((item) =>
+      item.id === s.id
+        ? { ...item, service: e.target.value.slice(0, 50) } // ✅ safety for paste
+        : item
+    );
+    setCurrentJob({ ...currentJob, services: updated });
+  }}
+  onBlur={() => updateService(s)}     // optimistic save
+/>
+
+{/*Counter unser service field*/}
+<div className="flex flex-col">
+  <input
+    className="border p-1 w-48 rounded"
+    placeholder="Service"
+    value={s.service || ""}
+    maxLength={50}
+    disabled={s.status === "invoiced"}
+    onChange={(e) => {
+      const updated = currentJob.services.map((item) =>
+        item.id === s.id
+          ? { ...item, service: e.target.value.slice(0, 50) }
+          : item
+      );
+      setCurrentJob({ ...currentJob, services: updated });
+    }}
+    onBlur={() => updateService(s)}
+  />
+  <span className="text-xs text-gray-400 text-right">
+    {(s.service || "").length}/30
+  </span>
+</div>
+
 
     <input
       type="number"
