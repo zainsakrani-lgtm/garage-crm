@@ -1035,14 +1035,14 @@ return (
       <textarea
         className="border p-2 rounded resize-none w-full"
         rows={5}                         // ✅ 5 lines tall
-        maxLength={30}                   // ✅ max 30 chars
+        maxLength={50}                   // ✅ max 50 chars
         placeholder="Service provided"
         value={s.service || ""}
         disabled={s.status === "invoiced"}
         onChange={(e) => {
           const updated = currentJob.services.map((item) =>
             item.id === s.id
-              ? { ...item, service: e.target.value.slice(0, 30) }
+              ? { ...item, service: e.target.value.slice(0, 50) }
               : item
           );
           setCurrentJob({ ...currentJob, services: updated });
@@ -1050,7 +1050,7 @@ return (
         onBlur={() => updateService(s)}
       />
       <span className="text-xs text-gray-400 text-right mt-1">
-        {(s.service || "").length}/30
+        {(s.service || "").length}/50
       </span>
     </div>
 
