@@ -990,8 +990,12 @@ return (
 
 
     <ul className="space-y-2">
-      {currentJob.services.map((s) => (
-  <div key={s.id} className="flex items-center gap-2">
+{currentJob.services.map((s) => (
+  <div
+    key={s.id}
+    className="grid grid-cols-[24px_1fr_1fr_120px] gap-3 items-start w-full"
+  >
+    {/* Checkbox */}
     <input
       type="checkbox"
       disabled={s.status === "invoiced"}
@@ -1005,10 +1009,12 @@ return (
             : [...prev, s.id]
         );
       }}
+      className="mt-2"
     />
 
+    {/* ISSUE (single line, full width) */}
     <input
-      className="border p-1 w-48 rounded"
+      className="border p-2 rounded w-full"
       maxLength={30}
       placeholder="Issue"
       value={s.issue || s.description || ""}
@@ -1016,7 +1022,7 @@ return (
       onChange={(e) => {
         const updated = currentJob.services.map((item) =>
           item.id === s.id
-            ? { ...item, issue: e.target.value }
+            ? { ...item, issue: e.target.value.slice(0, 30) }
             : item
         );
         setCurrentJob({ ...currentJob, services: updated });
@@ -1024,50 +1030,34 @@ return (
       onBlur={() => updateService(s)}
     />
 
-  <input
-  className="border p-1 w-48 rounded"
-  placeholder="Service"
-  value={s.service || ""}
-  maxLength={50}                     // ✅ hard limit (UI)
-  disabled={s.status === "invoiced"}
-  onChange={(e) => {
-    const updated = currentJob.services.map((item) =>
-      item.id === s.id
-        ? { ...item, service: e.target.value.slice(0, 50) } // ✅ safety for paste
-        : item
-    );
-    setCurrentJob({ ...currentJob, services: updated });
-  }}
-  onBlur={() => updateService(s)}     // optimistic save
-/>
+    {/* SERVICE (5 lines textarea) */}
+    <div className="flex flex-col w-full">
+      <textarea
+        className="border p-2 rounded resize-none w-full"
+        rows={5}                         // ✅ 5 lines tall
+        maxLength={30}                   // ✅ max 30 chars
+        placeholder="Service provided"
+        value={s.service || ""}
+        disabled={s.status === "invoiced"}
+        onChange={(e) => {
+          const updated = currentJob.services.map((item) =>
+            item.id === s.id
+              ? { ...item, service: e.target.value.slice(0, 30) }
+              : item
+          );
+          setCurrentJob({ ...currentJob, services: updated });
+        }}
+        onBlur={() => updateService(s)}
+      />
+      <span className="text-xs text-gray-400 text-right mt-1">
+        {(s.service || "").length}/30
+      </span>
+    </div>
 
-{/*Counter unser service field*/}
-<div className="flex flex-col">
-  <input
-    className="border p-1 w-48 rounded"
-    placeholder="Service"
-    value={s.service || ""}
-    maxLength={50}
-    disabled={s.status === "invoiced"}
-    onChange={(e) => {
-      const updated = currentJob.services.map((item) =>
-        item.id === s.id
-          ? { ...item, service: e.target.value.slice(0, 50) }
-          : item
-      );
-      setCurrentJob({ ...currentJob, services: updated });
-    }}
-    onBlur={() => updateService(s)}
-  />
-  <span className="text-xs text-gray-400 text-right">
-    {(s.service || "").length}/30
-  </span>
-</div>
-
-
+    {/* COST */}
     <input
       type="number"
-      className="border p-1 w-24 rounded"
+      className="border p-2 rounded w-full"
       value={s.cost || ""}
       disabled={s.status === "invoiced"}
       onChange={(e) => {
@@ -1082,6 +1072,7 @@ return (
     />
   </div>
 ))}
+
 
     </ul>
 
