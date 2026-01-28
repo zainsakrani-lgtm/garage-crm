@@ -48,8 +48,9 @@ const [newClient, setNewClient] = useState({
 });
 
 
-// Selected for invoice
+// Selected for invoice or deletion
   const [selectedForInvoice, setSelectedForInvoice] = useState([]);
+  const [selectedForDelete, setSelectedForDelete] = useState([]);
 
 
   // Job Service State
@@ -432,11 +433,12 @@ useEffect(() => {
 
 
 {/* BUTTON DELETE SERVICE LINE IN THE CURRENT JOB CARD */}
+
 async function deleteSelectedServices() {
-  if (selectedForInvoice.length === 0) return;
+  if (selectedForDelete.length === 0) return;
 
   const confirmDelete = window.confirm(
-    `Do you really want to delete the selected service line(s)?\n\nNumber of lines selected: ${selectedForInvoice.length}`
+    `Do you really want to delete the selected service line(s)?\n\nNumber of lines selected: ${selectedForDelete.length}`
   );
 
   if (!confirmDelete) return;
@@ -444,23 +446,24 @@ async function deleteSelectedServices() {
   const remainingServices = [];
 
   for (const s of currentJob.services) {
-    if (!selectedForInvoice.includes(s.id)) {
+    // ✅ Keep services NOT selected for delete
+    if (!selectedForDelete.includes(s.id)) {
       remainingServices.push(s);
       continue;
     }
 
-    // ❌ Prevent deleting invoiced services
+    // ❌ Never delete invoiced services
     if (s.status === "invoiced") {
       remainingServices.push(s);
       continue;
     }
 
-    // 🧹 Temporary service → just remove from state
+    // 🧹 Temporary (frontend-only) → remove from state only
     if (String(s.id).startsWith("tmp-")) {
       continue;
     }
 
-    // 🗑️ Saved service → delete from backend
+    // 🗑️ Persisted service → delete from backend
     await fetch(`${API}/services/${s.id}`, {
       method: "DELETE",
     });
@@ -471,8 +474,10 @@ async function deleteSelectedServices() {
     services: remainingServices,
   }));
 
-  setSelectedForInvoice([]);
+  // ✅ Clear ONLY delete selection
+  setSelectedForDelete([]);
 }
+
 
 
 
@@ -484,16 +489,34 @@ async function deleteSelectedServices() {
     return;
   }
 
+  // ✅ Only invoice real, unpaid services
+  const serviceIdsToInvoice = currentJob.services
+    .filter(
+      (s) =>
+        selectedForInvoice.includes(s.id) &&
+        s.status !== "invoiced" &&
+        !String(s.id).startsWith("tmp-")
+    )
+    .map((s) => s.id);
+
+  if (serviceIdsToInvoice.length === 0) {
+    alert("No valid services to invoice");
+    return;
+  }
+
   await fetch(`${API}/invoices`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       vehicle_id: selectedVehicle.id,
-      service_ids: selectedForInvoice,
+      service_ids: serviceIdsToInvoice,
     }),
   });
 
+  // 🔄 Reset ONLY invoice selection
   setSelectedForInvoice([]);
+
+  // 🔁 Reload authoritative data
   fetchServices(selectedVehicle.id);
   fetchInvoices(selectedVehicle.id);
 }
@@ -1111,21 +1134,27 @@ return (
     className="grid grid-cols-[24px_1fr_1fr_120px] gap-3 items-start w-full"
   >
     {/* Checkbox */}
-    <input
-      type="checkbox"
-      disabled={s.status === "invoiced"}
-      checked={selectedForInvoice.includes(s.id)}
-      onChange={() => {
-        if (s.status === "invoiced") return;
+<input
+  type="checkbox"
+  disabled={s.status === "invoiced"}
+  checked={selectedForInvoice.includes(s.id)}
+  onChange={() => {
+    if (s.status === "invoiced") return;
 
-        setSelectedForInvoice((prev) =>
-          prev.includes(s.id)
-            ? prev.filter((id) => id !== s.id)
-            : [...prev, s.id]
-        );
-      }}
-      className="mt-2"
-    />
+    setSelectedForInvoice((prev) =>
+      prev.includes(s.id)
+        ? prev.filter((id) => id !== s.id)
+        : [...prev, s.id]
+    );
+
+    setSelectedForDelete((prev) =>
+      prev.includes(s.id)
+        ? prev.filter((id) => id !== s.id)
+        : [...prev, s.id]
+    );
+  }}
+/>
+
 
     {/* ISSUE (single line, full width) */}
     <input
