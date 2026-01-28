@@ -6,6 +6,28 @@ const API = "https://garage-crm-backend.onrender.com";
 
 function App() {
 
+  // debounce for auto-save
+  const saveTimeoutsRef = useRef({});
+
+
+  // Auto-save helper
+  function autoSaveService(service) {
+  const id = service.id;
+
+  // clear existing timer for THIS service
+  if (saveTimeoutsRef.current[id]) {
+    clearTimeout(saveTimeoutsRef.current[id]);
+  }
+
+  // create new timer for THIS service
+  saveTimeoutsRef.current[id] = setTimeout(async () => {
+    await updateService(service);
+    delete saveTimeoutsRef.current[id];
+  }, 600);
+}
+
+
+
 // Helper function to add new service line 
   function addServiceLineToCurrentJob() {
   if (!currentJob || !selectedVehicle) return;
@@ -1189,7 +1211,28 @@ return (
 
 
     {/* ISSUE (single line, full width) */}
- <input
+
+    <input
+  className="border p-2 rounded w-full"
+  maxLength={30}
+  placeholder="Issue"
+  value={s.issue || s.description || ""}
+  disabled={s.status === "invoiced"}
+  onChange={(e) => {
+    const value = e.target.value.slice(0, 30);
+// ✅ keep existing state update logic
+    setCurrentJob((prev) => ({
+      ...prev,
+      services: prev.services.map((item) =>
+        item.id === s.id ? { ...item, issue: value } : item
+      ),
+    }));
+// ✅ auto-save
+    autoSaveService({ ...s, issue: value });
+  }}
+/>
+
+ {/*<input
   className="border p-2 rounded w-full"
   maxLength={30}
   placeholder="Issue"
@@ -1214,36 +1257,30 @@ return (
     );
   }}
 />
-
+*/}
 
     {/* SERVICE (5 lines textarea) */}
 <div className="flex flex-col w-full">
   <textarea
-    className="border p-2 rounded resize-none w-full"
-    rows={5}                         // ✅ 5 lines tall
-    maxLength={50}                   // ✅ max 50 chars
-    placeholder="Service provided"
-    value={s.service || ""}
-    disabled={s.status === "invoiced"}
-    onChange={(e) => {
-      const value = e.target.value.slice(0, 50);
+  className="border p-2 rounded resize-none w-full"
+  rows={5}
+  maxLength={50}
+  value={s.service || ""}
+  disabled={s.status === "invoiced"}
+  onChange={(e) => {
+    const value = e.target.value.slice(0, 50);
 
-      // ✅ keep existing state update logic
-      setCurrentJob((prev) => ({
-        ...prev,
-        services: prev.services.map((item) =>
-          item.id === s.id
-            ? { ...item, service: value }
-            : item
-        ),
-      }));
+    setCurrentJob((prev) => ({
+      ...prev,
+      services: prev.services.map((item) =>
+        item.id === s.id ? { ...item, service: value } : item
+      ),
+    }));
 
-      // ✅ auto-save (debounced)
-      debounceSave(() =>
-        updateService({ ...s, service: value })
-      );
-    }}
-  />
+    autoSaveService({ ...s, service: value });
+  }}
+/>
+
 
   <span className="text-xs text-gray-400 text-right mt-1">
     {(s.service || "").length}/50
@@ -1260,20 +1297,14 @@ return (
   onChange={(e) => {
     const value = e.target.value;
 
-    // ✅ keep existing state update logic
     setCurrentJob((prev) => ({
       ...prev,
       services: prev.services.map((item) =>
-        item.id === s.id
-          ? { ...item, cost: value }
-          : item
+        item.id === s.id ? { ...item, cost: value } : item
       ),
     }));
 
-    // ✅ auto-save (debounced)
-    debounceSave(() =>
-      updateService({ ...s, cost: value })
-    );
+    autoSaveService({ ...s, cost: value });
   }}
 />
 
