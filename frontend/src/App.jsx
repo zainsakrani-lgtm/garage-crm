@@ -431,6 +431,51 @@ useEffect(() => {
 }, [activePage]);
 
 
+{/* BUTTON DELETE SERVICE LINE IN THE CURRENT JOB CARD */}
+async function deleteSelectedServices() {
+  if (selectedForInvoice.length === 0) return;
+
+  const confirmDelete = window.confirm(
+    `Do you really want to delete the selected service line(s)?\n\nNumber of lines selected: ${selectedForInvoice.length}`
+  );
+
+  if (!confirmDelete) return;
+
+  const remainingServices = [];
+
+  for (const s of currentJob.services) {
+    if (!selectedForInvoice.includes(s.id)) {
+      remainingServices.push(s);
+      continue;
+    }
+
+    // ❌ Prevent deleting invoiced services
+    if (s.status === "invoiced") {
+      remainingServices.push(s);
+      continue;
+    }
+
+    // 🧹 Temporary service → just remove from state
+    if (String(s.id).startsWith("tmp-")) {
+      continue;
+    }
+
+    // 🗑️ Saved service → delete from backend
+    await fetch(`${API}/services/${s.id}`, {
+      method: "DELETE",
+    });
+  }
+
+  setCurrentJob((prev) => ({
+    ...prev,
+    services: remainingServices,
+  }));
+
+  setSelectedForInvoice([]);
+}
+
+
+
   // GENERATE INVOICE FUNCTION
 
   async function generateInvoice() {
@@ -1163,7 +1208,21 @@ return (
   >
     ➕ Add service line
   </button>
+
+  <button
+    type="button"
+    onClick={deleteSelectedServices}
+    disabled={selectedForInvoice.length === 0}
+    className={`px-4 py-2 rounded flex items-center gap-2 ${
+      selectedForInvoice.length === 0
+        ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+        : "bg-red-600 text-white hover:bg-red-700"
+    }`}
+  >
+    🗑️ Delete selected
+  </button>
 </div>
+
 
 
   </div>
