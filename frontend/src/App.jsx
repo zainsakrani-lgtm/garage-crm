@@ -483,45 +483,67 @@ async function deleteSelectedServices() {
 
   // GENERATE INVOICE FUNCTION
 
-  async function generateInvoice() {
+async function generateInvoice() {
   if (selectedForInvoice.length === 0) {
     alert("Select at least one service to invoice");
     return;
   }
 
-  // ✅ Only invoice real, unpaid services
-  const serviceIdsToInvoice = currentJob.services
-    .filter(
-      (s) =>
-        selectedForInvoice.includes(s.id) &&
-        s.status !== "invoiced" &&
-        !String(s.id).startsWith("tmp-")
-    )
-    .map((s) => s.id);
+  // 1️⃣ Persist temp services first
+  const persistedServiceIds = [];
 
-  if (serviceIdsToInvoice.length === 0) {
+  for (const s of currentJob.services) {
+    if (
+      selectedForInvoice.includes(s.id) &&
+      String(s.id).startsWith("tmp-")
+    ) {
+      const res = await fetch(`${API}/services`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          vehicle_id: selectedVehicle.id,
+          issue: s.issue || "",
+          service: s.service || "",
+          cost: s.cost,
+          status: "unpaid",
+        }),
+      });
+
+      const saved = await res.json();
+      persistedServiceIds.push(saved.id);
+    }
+
+    if (
+      selectedForInvoice.includes(s.id) &&
+      !String(s.id).startsWith("tmp-") &&
+      s.status !== "invoiced"
+    ) {
+      persistedServiceIds.push(s.id);
+    }
+  }
+
+  if (persistedServiceIds.length === 0) {
     alert("No valid services to invoice");
     return;
   }
 
+  // 2️⃣ Create invoice
   await fetch(`${API}/invoices`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       vehicle_id: selectedVehicle.id,
-      service_ids: serviceIdsToInvoice,
+      service_ids: persistedServiceIds,
     }),
   });
 
-  // 🔄 Reset ONLY invoice selection
   setSelectedForInvoice([]);
-
-  // 🔁 Reload authoritative data
   fetchServices(selectedVehicle.id);
   fetchInvoices(selectedVehicle.id);
 }
 
 
+{/* START OF THE PAGE */}
 return (
   <div className="min-h-screen bg-gray-100 p-6">
     <div className="max-w-5xl mx-auto bg-white rounded-xl shadow p-6">
