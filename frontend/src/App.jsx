@@ -25,6 +25,15 @@ function App() {
   });
 }
 
+// autosave service
+//let saveTimeout = null;
+
+const saveTimeoutRef = useRef(null);
+
+function debounceSave(fn, delay = 600) {
+  clearTimeout(saveTimeout);
+  saveTimeout = setTimeout(fn, delay);
+}
 
 
 // EDITING CUSTOMER STATE
@@ -1179,63 +1188,94 @@ return (
 
 
     {/* ISSUE (single line, full width) */}
-    <input
-      className="border p-2 rounded w-full"
-      maxLength={30}
-      placeholder="Issue"
-      value={s.issue || s.description || ""}
-      disabled={s.status === "invoiced"}
-      onChange={(e) => {
-        const updated = currentJob.services.map((item) =>
-          item.id === s.id
-            ? { ...item, issue: e.target.value.slice(0, 30) }
-            : item
-        );
-        setCurrentJob({ ...currentJob, services: updated });
-      }}
-      onBlur={() => updateService(s)}
-    />
+ <input
+  className="border p-2 rounded w-full"
+  maxLength={30}
+  placeholder="Issue"
+  value={s.issue || s.description || ""}
+  disabled={s.status === "invoiced"}
+  onChange={(e) => {
+    const value = e.target.value.slice(0, 30);
+
+    // ✅ keep existing state update logic
+    setCurrentJob((prev) => ({
+      ...prev,
+      services: prev.services.map((item) =>
+        item.id === s.id
+          ? { ...item, issue: value }
+          : item
+      ),
+    }));
+
+    // ✅ auto-save (debounced)
+    debounceSave(() =>
+      updateService({ ...s, issue: value })
+    );
+  }}
+/>
+
 
     {/* SERVICE (5 lines textarea) */}
-    <div className="flex flex-col w-full">
-      <textarea
-        className="border p-2 rounded resize-none w-full"
-        rows={5}                         // ✅ 5 lines tall
-        maxLength={50}                   // ✅ max 50 chars
-        placeholder="Service provided"
-        value={s.service || ""}
-        disabled={s.status === "invoiced"}
-        onChange={(e) => {
-          const updated = currentJob.services.map((item) =>
-            item.id === s.id
-              ? { ...item, service: e.target.value.slice(0, 50) }
-              : item
-          );
-          setCurrentJob({ ...currentJob, services: updated });
-        }}
-        onBlur={() => updateService(s)}
-      />
-      <span className="text-xs text-gray-400 text-right mt-1">
-        {(s.service || "").length}/50
-      </span>
-    </div>
+<div className="flex flex-col w-full">
+  <textarea
+    className="border p-2 rounded resize-none w-full"
+    rows={5}                         // ✅ 5 lines tall
+    maxLength={50}                   // ✅ max 50 chars
+    placeholder="Service provided"
+    value={s.service || ""}
+    disabled={s.status === "invoiced"}
+    onChange={(e) => {
+      const value = e.target.value.slice(0, 50);
+
+      // ✅ keep existing state update logic
+      setCurrentJob((prev) => ({
+        ...prev,
+        services: prev.services.map((item) =>
+          item.id === s.id
+            ? { ...item, service: value }
+            : item
+        ),
+      }));
+
+      // ✅ auto-save (debounced)
+      debounceSave(() =>
+        updateService({ ...s, service: value })
+      );
+    }}
+  />
+
+  <span className="text-xs text-gray-400 text-right mt-1">
+    {(s.service || "").length}/50
+  </span>
+</div>
+
 
     {/* COST */}
-    <input
-      type="number"
-      className="border p-2 rounded w-full"
-      value={s.cost || ""}
-      disabled={s.status === "invoiced"}
-      onChange={(e) => {
-        const updated = currentJob.services.map((item) =>
-          item.id === s.id
-            ? { ...item, cost: e.target.value }
-            : item
-        );
-        setCurrentJob({ ...currentJob, services: updated });
-      }}
-      onBlur={() => updateService(s)}
-    />
+<input
+  type="number"
+  className="border p-2 rounded w-full"
+  value={s.cost || ""}
+  disabled={s.status === "invoiced"}
+  onChange={(e) => {
+    const value = e.target.value;
+
+    // ✅ keep existing state update logic
+    setCurrentJob((prev) => ({
+      ...prev,
+      services: prev.services.map((item) =>
+        item.id === s.id
+          ? { ...item, cost: value }
+          : item
+      ),
+    }));
+
+    // ✅ auto-save (debounced)
+    debounceSave(() =>
+      updateService({ ...s, cost: value })
+    );
+  }}
+/>
+
   </div>
 ))}
 
