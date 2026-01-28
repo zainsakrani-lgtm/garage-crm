@@ -5,6 +5,27 @@ const API = "https://garage-crm-backend.onrender.com";
 
 function App() {
 
+// Helper function to add new service line 
+  function addServiceLineToCurrentJob() {
+  if (!currentJob || !selectedVehicle) return;
+
+  const newService = {
+    id: `tmp-${Date.now()}`, // temporary id (frontend only)
+    issue: "",
+    service: "",
+    cost: "",
+    status: "unpaid",
+    created_at: new Date().toISOString(),
+    isNew: true, // flag to know it’s not saved yet
+  };
+
+  setCurrentJob({
+    ...currentJob,
+    services: [...currentJob.services, newService],
+  });
+}
+
+
 
 // EDITING CUSTOMER STATE
   const [editingCustomerId, setEditingCustomerId] = useState(null);
@@ -300,6 +321,25 @@ async function saveJobCard() {
 
 // SAVE EDITS TO DB
 async function updateService(service) {
+
+  if (service.id.startsWith("tmp-")) {
+  // create in DB instead of update
+  await fetch(`${API}/services`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      vehicle_id: selectedVehicle.id,
+      issue: service.issue || "",
+      service: service.service || "",
+      cost: service.cost,
+      status: "unpaid",
+    }),
+  });
+
+  fetchServices(selectedVehicle.id);
+  return;
+}
+
   await fetch(`${API}/services/${service.id}`, {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
@@ -1076,12 +1116,25 @@ return (
 
     </ul>
 
-    <button
-  onClick={generateInvoice}
-  className="mt-3 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
->
-  🧾 Generate Invoice
-</button>
+    {/* BUTTON GENERATE INVOICE & ADD SERVICE */}
+
+<div className="mt-4 flex gap-3">
+  <button
+    onClick={generateInvoice}
+    className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+  >
+    🧾 Generate Invoice
+  </button>
+
+  <button
+    type="button"
+    onClick={addServiceLineToCurrentJob}
+    className="border border-blue-600 text-blue-600 px-4 py-2 rounded hover:bg-blue-50"
+  >
+    ➕ Add service line
+  </button>
+</div>
+
 
   </div>
 )}
