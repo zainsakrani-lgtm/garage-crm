@@ -144,6 +144,8 @@ const handleSearch = async (e) => {
     setServices([]);
   };
 
+  {/*
+
 const fetchServices = async (vehicleId) => {
   try {
     const res = await fetch(`${API}/services/${vehicleId}`);
@@ -172,6 +174,34 @@ const fetchServices = async (vehicleId) => {
     setServices([]);
     setCurrentJob(null);
   }
+};
+*/}
+
+const fetchServices = async (vehicleId) => {
+  const res = await fetch(`${API}/services/${vehicleId}`);
+  const data = await res.json();
+
+  setServices(data);
+
+  setCurrentJob((prev) => {
+    if (!prev) {
+      return {
+        vehicle: selectedVehicle,
+        services: data,
+        date: data[0]?.created_at || new Date().toISOString(),
+      };
+    }
+
+    // ✅ Keep temporary (unsaved) services
+    const tempServices = prev.services.filter(
+      (s) => String(s.id).startsWith("tmp-")
+    );
+
+    return {
+      ...prev,
+      services: [...data, ...tempServices],
+    };
+  });
 };
 
 
