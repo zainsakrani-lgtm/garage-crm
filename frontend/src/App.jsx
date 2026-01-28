@@ -48,15 +48,7 @@ function App() {
   });
 }
 
-// autosave service
-//let saveTimeout = null;
 
-const saveTimeoutRef = useRef(null);
-
-function debounceSave(fn, delay = 600) {
-  clearTimeout(saveTimeout);
-  saveTimeout = setTimeout(fn, delay);
-}
 
 
 // EDITING CUSTOMER STATE
@@ -83,6 +75,8 @@ const [newClient, setNewClient] = useState({
 // Selected for invoice or deletion
   const [selectedForInvoice, setSelectedForInvoice] = useState([]);
   const [selectedForDelete, setSelectedForDelete] = useState([]);
+
+  
 
 
   // Job Service State
