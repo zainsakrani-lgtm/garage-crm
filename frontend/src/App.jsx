@@ -22,11 +22,18 @@ function App() {
         body: JSON.stringify({
           vehicle_id: selectedVehicle.id,
           issue: s.issue || "",
-          service: s.service || "",
+          description: s.service || "",
           cost: s.cost,
           status: "unpaid",
         }),
       });
+
+      if (!res.ok) {
+  const err = await res.text();
+  alert("Save failed (update service): " + err);
+  return;
+}
+
       continue;
     }
 
@@ -305,6 +312,12 @@ const fetchServices = async (vehicleId) => {
       })
     });
 
+    if (!res.ok) {
+  const err = await res.text();
+  alert("Save failed (create service): " + err);
+  return;
+}
+
     setBrand("");
     setModel("");
     setPlate("");
@@ -390,6 +403,12 @@ async function saveJobCard() {
       }),
     });
 
+    if (!res.ok) {
+  const err = await res.text();
+  alert("Save failed (create service): " + err);
+  return;
+}
+
     const saved = await res.json();
     savedServices.push(saved);
   }
@@ -421,6 +440,12 @@ async function updateService(service) {
       status: "unpaid",
     }),
   });
+
+  if (!res.ok) {
+  const err = await res.text();
+  alert("Save failed (create service): " + err);
+  return;
+}
 
   fetchServices(selectedVehicle.id);
   return;
@@ -454,6 +479,12 @@ async function updateService(service) {
         service_date: serviceDate
       })
     });
+
+    if (!res.ok) {
+  const err = await res.text();
+  alert("Save failed (create service): " + err);
+  return;
+}
 
     setDescription("");
     setCost("");
@@ -582,6 +613,12 @@ async function generateInvoice() {
       service_ids: persistedServiceIds,
     }),
   });
+
+  if (!res.ok) {
+  const err = await res.text();
+  alert("Save failed (create service): " + err);
+  return;
+}
 
   // 🧹 Cleanup & refresh
   setSelectedForInvoice([]);
