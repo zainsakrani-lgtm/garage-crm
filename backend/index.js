@@ -249,17 +249,14 @@ app.post("/services", async (req, res) => {
 
   const { data, error } = await supabase
     .from("services")
-    .insert([
-      {
-        vehicle_id,
-        issue: issue || description || "",
-        service: service || "",
-        description: description || "",
-        cost,
-        service_date,
-        status: status || "unpaid",
-      },
-    ])
+    .insert([{
+  vehicle_id,
+  issue: issue || "",
+  description: description || "",
+  cost,
+  status: status || "unpaid",
+}])
+
     .select();
 
   if (error) {
@@ -271,13 +268,17 @@ app.post("/services", async (req, res) => {
 
 app.put("/services/:id", async (req, res) => {
   const { id } = req.params;
-  const { issue, service, cost } = req.body;
+  const { issue, description, cost } = req.body;
 
   const { data, error } = await supabase
-    .from("services")
-    .update({ issue, service, cost })
-    .eq("id", id)
-    .select();
+  .from("services")
+  .update({
+    issue,
+    description,
+    cost
+  })
+  .eq("id", id)
+  .select();
 
   if (error) {
     return res.status(500).json({ error: error.message });
