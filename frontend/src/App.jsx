@@ -16,7 +16,7 @@ function App() {
 
     // 🆕 NEW service → INSERT
     if (String(s.id).startsWith("tmp-")) {
-      await fetch(`${API}/services`, {
+      const res = await fetch(`${API}/services`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -39,12 +39,12 @@ function App() {
 
     // ✏️ EXISTING service → UPDATE only if changed
     if (s._dirty) {
-      await fetch(`${API}/services/${s.id}`, {
+      const res = await fetch(`${API}/services/${s.id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           issue: s.issue || "",
-          service: s.service || "",
+          description: s.service || "",
           cost: s.cost,
         }),
       });
@@ -300,7 +300,7 @@ const fetchServices = async (vehicleId) => {
   const addVehicle = async (e) => {
     e.preventDefault();
 
-    await fetch(`${API}/vehicles`, {
+    const res = await fetch(`${API}/vehicles`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -365,7 +365,7 @@ const fetchServices = async (vehicleId) => {
 // EDIT CUSTOMER
 
 async function updateCustomer(customer) {
-  await fetch(`${API}/customers/${customer.id}`, {
+  const res = await fetch(`${API}/customers/${customer.id}`, {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
@@ -429,13 +429,13 @@ async function updateService(service) {
 
   if (service.id.startsWith("tmp-")) {
   // create in DB instead of update
-  await fetch(`${API}/services`, {
+  const res = await fetch(`${API}/services`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       vehicle_id: selectedVehicle.id,
       issue: service.issue || "",
-      service: service.service || "",
+      description: service.service || "",
       cost: service.cost,
       status: "unpaid",
     }),
@@ -451,17 +451,21 @@ async function updateService(service) {
   return;
 }
 
-  await fetch(`${API}/services/${service.id}`, {
-    method: "PUT",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      issue: service.issue || service.description || "",
-      service: service.service || "",
-      cost: service.cost,
-    }),
-  });
-}
+const res = await fetch(`${API}/services/${service.id}`, {
+  method: "PUT",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({
+    issue: service.issue || service.description || "",
+    description: service.service || "", // ✅ FIXED
+    cost: service.cost,
+  }),
+});
 
+if (!res.ok) {
+  const err = await res.text();
+  alert("Save failed (update service): " + err);
+  return;
+}
 
 
 
@@ -469,7 +473,7 @@ async function updateService(service) {
   const addService = async (e) => {
     e.preventDefault();
 
-    await fetch(`${API}/services`, {
+    const res = await fetch(`${API}/services`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -605,7 +609,7 @@ async function generateInvoice() {
   }
 
   // 🧾 Create invoice
-  await fetch(`${API}/invoices`, {
+  const res = await fetch(`${API}/invoices`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
