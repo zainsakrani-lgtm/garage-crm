@@ -6,25 +6,54 @@ const API = "https://garage-crm-backend.onrender.com";
 
 function App() {
 
-  // debounce for auto-save
-  const saveTimeoutsRef = useRef({});
+// SAVE CURRENT JOB
+  async function saveCurrentJob() {
+  if (!currentJob || !selectedVehicle) return;
 
+  for (const s of currentJob.services) {
+    // ⛔ Skip invoiced services
+    if (s.status === "invoiced") continue;
 
-  // Auto-save helper
-  function autoSaveService(service) {
-  const id = service.id;
+    // 🆕 NEW service → INSERT
+    if (String(s.id).startsWith("tmp-")) {
+      await fetch(`${API}/services`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          vehicle_id: selectedVehicle.id,
+          issue: s.issue || "",
+          service: s.service || "",
+          cost: s.cost,
+          status: "unpaid",
+        }),
+      });
+      continue;
+    }
 
-  // clear existing timer for THIS service
-  if (saveTimeoutsRef.current[id]) {
-    clearTimeout(saveTimeoutsRef.current[id]);
+    // ✏️ EXISTING service → UPDATE only if changed
+    if (s._dirty) {
+      await fetch(`${API}/services/${s.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          issue: s.issue || "",
+          service: s.service || "",
+          cost: s.cost,
+        }),
+      });
+    }
   }
 
-  // create new timer for THIS service
-  saveTimeoutsRef.current[id] = setTimeout(async () => {
-    await updateService(service);
-    delete saveTimeoutsRef.current[id];
-  }, 600);
+  // 🔄 Reload from DB (single source of truth)
+  await fetchServices(selectedVehicle.id);
+
+  // 🧹 Clear selections
+  setSelectedForInvoice([]);
+
+  alert("Job card saved successfully ✅");
 }
+
+
 
 
 
@@ -510,38 +539,29 @@ async function deleteSelectedServices() {
   // GENERATE INVOICE FUNCTION
 
 async function generateInvoice() {
+  if (!currentJob || !selectedVehicle) return;
+
+  // 🚫 Block invoice if there are unsaved changes
+  const hasUnsaved = currentJob.services.some(
+    (s) => String(s.id).startsWith("tmp-") || s._dirty
+  );
+
+  if (hasUnsaved) {
+    alert("Please save changes before generating invoice");
+    return;
+  }
+
   if (selectedForInvoice.length === 0) {
     alert("Select at least one service to invoice");
     return;
   }
 
-  // 1️⃣ Persist temp services first
+  // ✅ Only persisted, non-invoiced services
   const persistedServiceIds = [];
 
   for (const s of currentJob.services) {
     if (
       selectedForInvoice.includes(s.id) &&
-      String(s.id).startsWith("tmp-")
-    ) {
-      const res = await fetch(`${API}/services`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          vehicle_id: selectedVehicle.id,
-          issue: s.issue || "",
-          service: s.service || "",
-          cost: s.cost,
-          status: "unpaid",
-        }),
-      });
-
-      const saved = await res.json();
-      persistedServiceIds.push(saved.id);
-    }
-
-    if (
-      selectedForInvoice.includes(s.id) &&
-      !String(s.id).startsWith("tmp-") &&
       s.status !== "invoiced"
     ) {
       persistedServiceIds.push(s.id);
@@ -553,7 +573,7 @@ async function generateInvoice() {
     return;
   }
 
-  // 2️⃣ Create invoice
+  // 🧾 Create invoice
   await fetch(`${API}/invoices`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -563,10 +583,12 @@ async function generateInvoice() {
     }),
   });
 
+  // 🧹 Cleanup & refresh
   setSelectedForInvoice([]);
-  fetchServices(selectedVehicle.id);
-  fetchInvoices(selectedVehicle.id);
+  await fetchServices(selectedVehicle.id);
+  await fetchInvoices(selectedVehicle.id);
 }
+
 
 
 {/* START OF THE PAGE */}
@@ -1218,11 +1240,9 @@ return (
     setCurrentJob((prev) => ({
       ...prev,
       services: prev.services.map((item) =>
-        item.id === s.id ? { ...item, issue: value } : item
+        item.id === s.id ? { ...item, issue: value, _dirty: true } : item
       ),
     }));
-// ✅ auto-save
-    autoSaveService({ ...s, issue: value });
   }}
 />
 
@@ -1267,11 +1287,9 @@ return (
     setCurrentJob((prev) => ({
       ...prev,
       services: prev.services.map((item) =>
-        item.id === s.id ? { ...item, service: value } : item
+        item.id === s.id ? { ...item, service: value, _dirty: true } : item
       ),
     }));
-
-    autoSaveService({ ...s, service: value });
   }}
 />
 
@@ -1294,11 +1312,10 @@ return (
     setCurrentJob((prev) => ({
       ...prev,
       services: prev.services.map((item) =>
-        item.id === s.id ? { ...item, cost: value } : item
+        item.id === s.id ? { ...item, cost: value, _dirty: true } : item
       ),
     }));
 
-    autoSaveService({ ...s, cost: value });
   }}
 />
 
@@ -1338,6 +1355,15 @@ return (
   >
     🗑️ Delete selected
   </button>
+
+  <button
+  type="button"
+  onClick={saveCurrentJob}
+  className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
+>
+  💾 Save changes
+</button>
+
 </div>
 
 
