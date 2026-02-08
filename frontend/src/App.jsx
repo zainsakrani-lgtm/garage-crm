@@ -39,16 +39,23 @@ function App() {
 
     // ✏️ EXISTING service → UPDATE only if changed
     if (s._dirty) {
-      const res = await fetch(`${API}/services/${s.id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          issue: s.issue || "",
-          description: s.service || "",
-          cost: s.cost,
-        }),
-      });
-    }
+  const res = await fetch(`${API}/services/${s.id}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      issue: s.issue || "",
+      description: service.service || "",
+      cost: s.cost,
+    }),
+  });
+
+  if (!res.ok) {
+    const err = await res.text();
+    alert("Save failed (update service): " + err);
+    return;
+  }
+}
+
   }
 
   // 🔄 Reload from DB (single source of truth)
@@ -426,37 +433,37 @@ async function saveJobCard() {
 
 // SAVE EDITS TO DB
 async function updateService(service) {
-
+  // 🆕 CREATE
   if (service.id.startsWith("tmp-")) {
-  // create in DB instead of update
-  const res = await fetch(`${API}/services`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      vehicle_id: selectedVehicle.id,
-      issue: service.issue || "",
-      description: service.service || "",
-      cost: service.cost,
-      status: "unpaid",
-    }),
-  });
+    const res = await fetch(`${API}/services`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        vehicle_id: selectedVehicle.id,
+        issue: service.issue || "",
+        description: service.service || "",
+        cost: service.cost,
+        status: "unpaid",
+      }),
+    });
 
-  if (!res.ok) {
-  const err = await res.text();
-  alert("Save failed (create service): " + err);
-  return;
-}
+    if (!res.ok) {
+      const err = await res.text();
+      alert("Save failed (create service): " + err);
+      return;
+    }
 
-  fetchServices(selectedVehicle.id);
-  return;
-}
+    await fetchServices(selectedVehicle.id);
+    return;
+  }
 
+  // ✏️ UPDATE
 const res = await fetch(`${API}/services/${service.id}`, {
   method: "PUT",
   headers: { "Content-Type": "application/json" },
   body: JSON.stringify({
-    issue: service.issue || service.description || "",
-    description: service.service || "", // ✅ FIXED
+    issue: service.issue || "",
+    description: service.service || service.issue || "",
     cost: service.cost,
   }),
 });
@@ -465,6 +472,8 @@ if (!res.ok) {
   const err = await res.text();
   alert("Save failed (update service): " + err);
   return;
+}
+
 }
 
 
